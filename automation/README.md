@@ -154,6 +154,8 @@ The tool will update the A record for the mapped hostname after rebuild.
 
 ## Releases
 
+This repo uses shared release tags for both Web and Automation. See `RELEASE_NOTES.md` at the repo root.
+
 If you prefer versioned releases, you can tag a release on GitHub and install from it:
 
 ```bash

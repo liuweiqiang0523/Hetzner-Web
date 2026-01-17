@@ -121,6 +121,8 @@ cloudflare:
 
 ## Releases
 
+本仓库使用统一版本标签，Web 与自动化共享同一套 release，详见仓库根目录 `RELEASE_NOTES.md`。
+
 如果需要版本化发布，可以在 GitHub 打 tag：
 
 ```bash

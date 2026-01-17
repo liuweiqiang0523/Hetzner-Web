@@ -25,6 +25,16 @@ Hetzner Web 是面向 Hetzner Cloud 的流量可视化控制室。它把原始�
 - 出站/入站流量柱状图
 - Basic Auth 登录
 
+## 项目结构
+
+- Web 控制台（本目录）：FastAPI + Vue，Docker 优先。
+- 自动化监控：`automation/`（CLI/systemd 服务）。
+
+快捷入口：
+- Web 文档：`README.zh.md`（当前）
+- 自动化文档：`automation/README_CN.md`
+- 自动化安装脚本：`automation/install_hetzner_monitor.sh`
+
 ## 工作方式
 
 - 刷新时从 Hetzner Cloud API 拉取服务器与流量数据。
@@ -132,6 +142,10 @@ server {
 
 - 运行时数据存放在 `report_state.json`（已加入 gitignore）。
 - `config.yaml` 和 `web_config.json` 已加入 gitignore，避免泄露。
+
+## 版本发布
+
+仓库统一版本说明见 `RELEASE_NOTES.md`，适用于 Web 控制台与自动化监控。
 
 ## 许可证
 

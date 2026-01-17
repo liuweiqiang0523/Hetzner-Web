@@ -25,6 +25,16 @@ hourly insights, highlights cap risk, and keeps rebuild/DNS actions close to the
 - Traffic bar chart (outbound/inbound)
 - Basic Auth login
 
+## Project Layout
+
+- Web dashboard (this directory): FastAPI + Vue, Docker-first.
+- Automation monitor: `automation/` (CLI/systemd service).
+
+Quick links:
+- Web docs: `README.md` (this file)
+- Automation docs: `automation/README.md`
+- Automation install script: `automation/install_hetzner_monitor.sh`
+
 ## How It Works
 
 - Fetches server + traffic data from the Hetzner Cloud API on refresh.
@@ -132,6 +142,10 @@ server {
 
 - Runtime data is stored in `report_state.json` (gitignored).
 - `config.yaml` and `web_config.json` are gitignored for safety.
+
+## Releases
+
+Repo-wide release notes live in `RELEASE_NOTES.md` and apply to both the Web dashboard and Automation monitor.
 
 ## License
 

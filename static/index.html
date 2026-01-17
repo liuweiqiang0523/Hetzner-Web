@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
-    <title>Hetzner 流量控制台</title>
+    <title>Hetzner Traffic Console</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -1324,75 +1324,75 @@
   <body>
     <div id="app" class="container">
       <div v-if="!authed" class="login card">
-        <h1>Hetzner 控制台</h1>
-        <p class="subtitle">使用账号登录以管理服务器。</p>
+        <h1>{{ langPack.loginTitle }}</h1>
+        <p class="subtitle">{{ langPack.loginSubtitle }}</p>
         <div class="field">
-          <label>账号</label>
+          <label>{{ langPack.usernameLabel }}</label>
           <input v-model="username" autocomplete="username" />
         </div>
         <div class="field">
-          <label>密码</label>
+          <label>{{ langPack.passwordLabel }}</label>
           <input type="password" v-model="password" autocomplete="current-password" />
         </div>
-        <button class="btn accent" @click="login">登录</button>
+        <button class="btn accent" @click="login">{{ langPack.loginButton }}</button>
         <p v-if="error" class="muted">{{ error }}</p>
       </div>
 
       <template v-else>
         <section class="grid">
           <div class="card">
-            <h3 class="title-with-icon">✨ Hetzner • 总览</h3>
-            <div class="subtitle">📊 实时流量、重建操作、DNS 检查集中展示。</div>
+            <h3 class="title-with-icon">{{ langPack.overviewTitle }}</h3>
+            <div class="subtitle">{{ langPack.overviewSubtitle }}</div>
             <div class="toolbar">
-              <button class="btn" @click="dnsCheck()">DNS 检查</button>
-              <button class="btn danger" @click="logout">退出</button>
+              <button class="btn" @click="dnsCheck()">{{ langPack.dnsCheck }}</button>
+              <button class="btn danger" @click="logout">{{ langPack.logout }}</button>
               <div class="lang-toggle">
                 <span class="pill">{{ langPack.langLabel }}</span>
                 <button class="btn" :class="{ accent: lang === 'zh' }" @click="setLang('zh')">中文</button>
                 <button class="btn" :class="{ accent: lang === 'en' }" @click="setLang('en')">EN</button>
               </div>
               <div class="status">
-                <span class="pill">更新时间</span>
+                <span class="pill">{{ langPack.updatedAt }}</span>
                 <span>{{ updatedAt || "—" }}</span>
               </div>
             </div>
             <div class="hero-metrics">
               <div class="hero-metric">
-                <div class="status">📤 周期累计出站</div>
+                <div class="status">{{ langPack.cycleOutbound }}</div>
                 <div class="metric">{{ trackingOutboundTb || totalOutboundTb }} <small>TB</small></div>
-                <div class="muted">起点 {{ trackingStart || "—" }}</div>
+                <div class="muted">{{ langPack.cycleStart }} {{ trackingStart || "—" }}</div>
               </div>
               <div class="hero-metric">
-                <div class="status">📥 周期累计入站</div>
+                <div class="status">{{ langPack.cycleInbound }}</div>
                 <div class="metric">{{ trackingInboundTb || totalInboundTb }} <small>TB</small></div>
-                <div class="muted">起点 {{ trackingStart || "—" }}</div>
+                <div class="muted">{{ langPack.cycleStart }} {{ trackingStart || "—" }}</div>
               </div>
               <div class="hero-metric">
-                <div class="status">📈 当天累计出站</div>
+                <div class="status">{{ langPack.todayOutbound }}</div>
                 <div class="metric">{{ todayOutboundTb }} <small>TB</small></div>
               </div>
               <div class="hero-metric">
-                <div class="status">📉 当天累计入站</div>
+                <div class="status">{{ langPack.todayInbound }}</div>
                 <div class="metric">{{ todayInboundTb }} <small>TB</small></div>
               </div>
             </div>
             <div class="hero-metrics">
               <div class="hero-metric">
-                <div class="status">🧭 今日 vs 昨日出站</div>
+                <div class="status">{{ langPack.todayVsYesterdayOutbound }}</div>
                 <div class="metric">{{ todayOutboundTb }} <small>TB</small></div>
                 <div class="muted">
-                  昨日 {{ yesterdayOutboundTb }} TB · 变化
+                  {{ langPack.yesterdayLabel }} {{ yesterdayOutboundTb }} TB · {{ langPack.changeLabel }}
                   <span :class="dayDeltaClass">{{ dayDeltaTb }} TB ({{ dayDeltaPct }})</span>
                 </div>
               </div>
               <div class="hero-metric">
-                <div class="status">🗓️ 本月累计出站</div>
+                <div class="status">{{ langPack.monthOutbound }}</div>
                 <div class="metric">{{ monthOutboundTb }} <small>TB</small></div>
-                <div class="muted">本月日均 {{ monthDailyAvgTb }} TB</div>
-                <div class="muted">峰值 {{ monthPeakTb }} TB（{{ monthPeakDay || "—" }}）</div>
+                <div class="muted">{{ langPack.monthDailyAvg }} {{ monthDailyAvgTb }} TB</div>
+                <div class="muted">{{ langPack.monthPeak }} {{ monthPeakTb }} TB ({{ monthPeakDay || "—" }})</div>
               </div>
               <div class="hero-metric">
-                <div class="status">♻️ 最近重建</div>
+                <div class="status">{{ langPack.recentRebuild }}</div>
                 <div class="metric">{{ lastRebuildAt || "—" }}</div>
                 <div class="muted">{{ lastRebuildServer || "—" }}</div>
               </div>
@@ -1420,37 +1420,37 @@
             </div>
           </div>
           <div class="card">
-            <h3 class="title-with-icon">🖥️ Hetzner • 机器</h3>
+            <h3 class="title-with-icon">{{ langPack.serversTitle }}</h3>
             <div class="toolbar">
               <input
                 class="table-filter"
                 v-model="serverFilter"
-                placeholder="搜索名称 / ID / IP"
+                :placeholder="langPack.serverSearchPlaceholder"
                 @input="() => {}"
               />
               <select class="table-filter" v-model="serverSort">
-                <option value="outbound_desc">出站高到低</option>
-                <option value="outbound_asc">出站低到高</option>
-                <option value="eta_asc">触顶更快</option>
-                <option value="eta_desc">触顶更慢</option>
-                <option value="name_asc">名称 A-Z</option>
-                <option value="name_desc">名称 Z-A</option>
+                <option value="outbound_desc">{{ langPack.sortOutboundDesc }}</option>
+                <option value="outbound_asc">{{ langPack.sortOutboundAsc }}</option>
+                <option value="eta_asc">{{ langPack.sortEtaAsc }}</option>
+                <option value="eta_desc">{{ langPack.sortEtaDesc }}</option>
+                <option value="name_asc">{{ langPack.sortNameAsc }}</option>
+                <option value="name_desc">{{ langPack.sortNameDesc }}</option>
               </select>
             </div>
             <div class="table-wrap">
               <table class="table">
                 <thead>
                   <tr>
-                    <th>名称</th>
-                    <th>IP</th>
-                    <th>规格</th>
-                    <th>机房</th>
-                    <th>出站（TB）</th>
-                    <th>入站（TB）</th>
-                    <th>阈值/剩余</th>
-                    <th>触顶 ETA</th>
-                    <th>趋势</th>
-                    <th>操作</th>
+                    <th>{{ langPack.tableName }}</th>
+                    <th>{{ langPack.tableIp }}</th>
+                    <th>{{ langPack.tableType }}</th>
+                    <th>{{ langPack.tableLocation }}</th>
+                    <th>{{ langPack.tableOutbound }}</th>
+                    <th>{{ langPack.tableInbound }}</th>
+                    <th>{{ langPack.tableLimit }}</th>
+                    <th>{{ langPack.tableEta }}</th>
+                    <th>{{ langPack.tableTrend }}</th>
+                    <th>{{ langPack.tableActions }}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1482,8 +1482,8 @@
                       </div>
                     </td>
                     <td>
-                      <button class="btn" @click="dnsCheck(s.id)">DNS 检查</button>
-                      <button class="btn danger" @click="rebuild(s.id)">重建</button>
+                      <button class="btn" @click="dnsCheck(s.id)">{{ langPack.dnsCheck }}</button>
+                      <button class="btn danger" @click="rebuild(s.id)">{{ langPack.rebuild }}</button>
                     </td>
                   </tr>
                 </tbody>
@@ -1492,17 +1492,17 @@
           </div>
 
           <div class="card">
-            <h3 class="title-with-icon">📡 Hetzner • 出站/入站</h3>
+            <h3 class="title-with-icon">{{ langPack.trafficTitle }}</h3>
             <div class="toolbar">
-              <div class="status">小时数据日期</div>
+              <div class="status">{{ langPack.hourlyDateLabel }}</div>
               <input class="date-input" type="date" v-model="hourlyDate" @change="fetchHourly" />
-              <button class="btn" @click="clearHourlyDate">最近24小时</button>
-              <div class="muted">{{ hourlyDate ? `当前日期：${hourlyDate}` : "当前：最近24小时" }}</div>
+              <button class="btn" @click="clearHourlyDate">{{ langPack.recent24h }}</button>
+              <div class="muted">{{ hourlyDateDisplay }}</div>
             </div>
             <div class="detail-grid">
               <div class="detail-card">
-              <div class="detail-title title-with-icon">📅 每日出站/入站</div>
-                <div v-if="dailyServerOptions.length === 0" class="muted">暂无数据。</div>
+              <div class="detail-title title-with-icon">{{ langPack.dailyTitle }}</div>
+                <div v-if="dailyServerOptions.length === 0" class="muted">{{ langPack.noData }}</div>
                 <div v-else>
                   <div class="selector">
                     <span
@@ -1515,12 +1515,12 @@
                       <span class="chip-dot" :style="{ background: srv.color }"></span>{{ srv.name }}
                     </span>
                   </div>
-                  <div v-if="dailyMatrix.rows.length === 0" class="muted">请选择至少一台服务器。</div>
+                  <div v-if="dailyMatrix.rows.length === 0" class="muted">{{ langPack.selectAtLeastOne }}</div>
                   <div v-else class="matrix-wrap scroll-box">
                     <table class="table compact-table">
                       <thead>
                         <tr>
-                          <th>日期</th>
+                          <th>{{ langPack.tableDate }}</th>
                           <th v-for="srv in dailyMatrix.servers" :key="srv.id + '-name'" colspan="2" class="group">
                             {{ srv.name }}
                           </th>
@@ -1528,8 +1528,8 @@
                         <tr>
                           <th></th>
                           <template v-for="srv in dailyMatrix.servers" :key="srv.id + '-cols'">
-                            <th class="sub">出站</th>
-                            <th class="sub divider">入站</th>
+                            <th class="sub">{{ langPack.outbound }}</th>
+                            <th class="sub divider">{{ langPack.inbound }}</th>
                           </template>
                         </tr>
                       </thead>
@@ -1549,9 +1549,9 @@
                 </div>
               </div>
               <div class="detail-card">
-                <div class="detail-title title-with-icon">📊 流量柱子</div>
-                <div class="muted">默认展示近 7 天，可左右滚动查看历史。</div>
-                <div v-if="dailyStackDays.length === 0" class="muted">暂无数据。</div>
+                <div class="detail-title title-with-icon">{{ langPack.trafficBarsTitle }}</div>
+                <div class="muted">{{ langPack.trafficBarsHint }}</div>
+                <div v-if="dailyStackDays.length === 0" class="muted">{{ langPack.noData }}</div>
                 <div v-else class="stack-chart">
                   <div class="stack-bars">
                     <div v-for="d in dailyStackDays" :key="`stack-${d.date}`" class="stack-day">
@@ -1564,8 +1564,8 @@
                     </div>
                   </div>
                   <div class="stack-legend">
-                    <span><i style="background:#7c4dff"></i>出站</span>
-                    <span><i style="background:#14b8a6"></i>入站</span>
+                    <span><i style="background:#7c4dff"></i>{{ langPack.outbound }}</span>
+                    <span><i style="background:#14b8a6"></i>{{ langPack.inbound }}</span>
                   </div>
                 </div>
               </div>
@@ -1576,7 +1576,7 @@
 
         </section>
 
-        <div class="footer">提示：此控制台使用 Basic Auth，建议通过 HTTPS 访问。| build 20260116-01</div>
+        <div class="footer">{{ langPack.footerNote }}</div>
       </template>
     </div>
 
@@ -1590,7 +1590,7 @@
             username: localStorage.getItem("hz_user") || "",
             password: localStorage.getItem("hz_pass") || "",
             authed: false,
-            lang: localStorage.getItem("hz_lang") || "zh",
+            lang: localStorage.getItem("hz_lang") || "en",
             servers: [],
             serverFilter: "",
             serverSort: "outbound_desc",
@@ -1720,7 +1720,30 @@
           langPack() {
             if (this.lang === "en") {
               return {
+                title: "Hetzner Traffic Console",
                 langLabel: "Language",
+                loginTitle: "Hetzner Console",
+                loginSubtitle: "Sign in to manage servers.",
+                usernameLabel: "Username",
+                passwordLabel: "Password",
+                loginButton: "Sign In",
+                overviewTitle: "✨ Hetzner • Overview",
+                overviewSubtitle: "📊 Real-time traffic, rebuild actions, and DNS checks in one place.",
+                dnsCheck: "DNS Check",
+                logout: "Log Out",
+                updatedAt: "Updated",
+                cycleOutbound: "📤 Cycle outbound",
+                cycleInbound: "📥 Cycle inbound",
+                cycleStart: "Start",
+                todayOutbound: "📈 Today outbound",
+                todayInbound: "📉 Today inbound",
+                todayVsYesterdayOutbound: "🧭 Today vs yesterday outbound",
+                yesterdayLabel: "Yesterday",
+                changeLabel: "Change",
+                monthOutbound: "🗓️ Month outbound",
+                monthDailyAvg: "Daily avg",
+                monthPeak: "Peak",
+                recentRebuild: "♻️ Recent rebuild",
                 aboutTitle: "About",
                 aboutLead: "A focused traffic control room for Hetzner Cloud.",
                 aboutBody:
@@ -1737,10 +1760,81 @@
                   "Budget forecast with configurable cost per TB.",
                   "Tag-based grouping and custom traffic caps.",
                 ],
+                serversTitle: "🖥️ Hetzner • Servers",
+                serverSearchPlaceholder: "Search name / ID / IP",
+                sortOutboundDesc: "Outbound high to low",
+                sortOutboundAsc: "Outbound low to high",
+                sortEtaAsc: "Cap sooner",
+                sortEtaDesc: "Cap later",
+                sortNameAsc: "Name A-Z",
+                sortNameDesc: "Name Z-A",
+                tableName: "Name",
+                tableIp: "IP",
+                tableType: "Type",
+                tableLocation: "Location",
+                tableOutbound: "Outbound (TB)",
+                tableInbound: "Inbound (TB)",
+                tableLimit: "Limit / Remaining",
+                tableEta: "Cap ETA",
+                tableTrend: "Trend",
+                tableActions: "Actions",
+                rebuild: "Rebuild",
+                trafficTitle: "📡 Hetzner • Outbound / Inbound",
+                hourlyDateLabel: "Hourly date",
+                recent24h: "Last 24 hours",
+                currentDatePrefix: "Current date:",
+                currentLast24h: "Current: last 24 hours",
+                dailyTitle: "📅 Daily outbound / inbound",
+                noData: "No data.",
+                selectAtLeastOne: "Select at least one server.",
+                tableDate: "Date",
+                outbound: "Outbound",
+                inbound: "Inbound",
+                trafficBarsTitle: "📊 Traffic bars",
+                trafficBarsHint: "Default shows the last 7 days; scroll to see history.",
+                footerNote: "Note: This console uses Basic Auth; access via HTTPS. | build 20260116-01",
+                loginFailed: "Login failed.",
+                networkError: "Network error.",
+                loadServersFailed: "Failed to load servers.",
+                dnsCheckFailed: "DNS check failed.",
+                dnsMissingMap: "Missing mapping",
+                dnsError: "Error",
+                dnsMismatch: "Mismatch",
+                dnsOk: "OK",
+                dnsExpected: "expected",
+                rebuildConfirm: "Rebuild this server now?",
+                rebuildFailed: "Rebuild failed",
+                rebuildUnknownError: "Unknown error",
+                rebuildStarted: "Rebuild started, new IP: ",
+                dayUnit: "days",
+                hourUnit: "hours",
               };
             }
             return {
               langLabel: "语言",
+              title: "Hetzner 流量控制台",
+              loginTitle: "Hetzner 控制台",
+              loginSubtitle: "使用账号登录以管理服务器。",
+              usernameLabel: "账号",
+              passwordLabel: "密码",
+              loginButton: "登录",
+              overviewTitle: "✨ Hetzner • 总览",
+              overviewSubtitle: "📊 实时流量、重建操作、DNS 检查集中展示。",
+              dnsCheck: "DNS 检查",
+              logout: "退出",
+              updatedAt: "更新时间",
+              cycleOutbound: "📤 周期累计出站",
+              cycleInbound: "📥 周期累计入站",
+              cycleStart: "起点",
+              todayOutbound: "📈 当天累计出站",
+              todayInbound: "📉 当天累计入站",
+              todayVsYesterdayOutbound: "🧭 今日 vs 昨日出站",
+              yesterdayLabel: "昨日",
+              changeLabel: "变化",
+              monthOutbound: "🗓️ 本月累计出站",
+              monthDailyAvg: "本月日均",
+              monthPeak: "峰值",
+              recentRebuild: "♻️ 最近重建",
               aboutTitle: "关于",
               aboutLead: "面向 Hetzner Cloud 的流量控制室。",
               aboutBody: "把原始用量整理成日/小时洞察，提前发现触顶风险，并把重建/DNS 操作放在触手可及的位置。",
@@ -1756,7 +1850,61 @@
                 "按 TB 计费的预算预测与成本跟踪。",
                 "按标签分组与自定义流量上限。",
               ],
+              serversTitle: "🖥️ Hetzner • 机器",
+              serverSearchPlaceholder: "搜索名称 / ID / IP",
+              sortOutboundDesc: "出站高到低",
+              sortOutboundAsc: "出站低到高",
+              sortEtaAsc: "触顶更快",
+              sortEtaDesc: "触顶更慢",
+              sortNameAsc: "名称 A-Z",
+              sortNameDesc: "名称 Z-A",
+              tableName: "名称",
+              tableIp: "IP",
+              tableType: "规格",
+              tableLocation: "机房",
+              tableOutbound: "出站（TB）",
+              tableInbound: "入站（TB）",
+              tableLimit: "阈值/剩余",
+              tableEta: "触顶 ETA",
+              tableTrend: "趋势",
+              tableActions: "操作",
+              rebuild: "重建",
+              trafficTitle: "📡 Hetzner • 出站/入站",
+              hourlyDateLabel: "小时数据日期",
+              recent24h: "最近24小时",
+              currentDatePrefix: "当前日期：",
+              currentLast24h: "当前：最近24小时",
+              dailyTitle: "📅 每日出站/入站",
+              noData: "暂无数据。",
+              selectAtLeastOne: "请选择至少一台服务器。",
+              tableDate: "日期",
+              outbound: "出站",
+              inbound: "入站",
+              trafficBarsTitle: "📊 流量柱子",
+              trafficBarsHint: "默认展示近 7 天，可左右滚动查看历史。",
+              footerNote: "提示：此控制台使用 Basic Auth，建议通过 HTTPS 访问。| build 20260116-01",
+              loginFailed: "登录失败。",
+              networkError: "网络错误。",
+              loadServersFailed: "加载服务器失败。",
+              dnsCheckFailed: "DNS 检查失败。",
+              dnsMissingMap: "缺少映射",
+              dnsError: "错误",
+              dnsMismatch: "不匹配",
+              dnsOk: "OK",
+              dnsExpected: "期望",
+              rebuildConfirm: "确定立即重建该服务器？",
+              rebuildFailed: "重建失败",
+              rebuildUnknownError: "未知错误",
+              rebuildStarted: "重建已开始，新 IP: ",
+              dayUnit: "天",
+              hourUnit: "小时",
             };
+          },
+          hourlyDateDisplay() {
+            if (this.hourlyDate) {
+              return `${this.langPack.currentDatePrefix} ${this.hourlyDate}`;
+            }
+            return this.langPack.currentLast24h;
           },
           filteredServers() {
             const query = (this.serverFilter || "").toLowerCase().trim();
@@ -1801,17 +1949,26 @@
           },
           cycleEtaDisplay() {
             if (this.cycleEtaHours === null || !Number.isFinite(this.cycleEtaHours)) return "—";
-            if (this.cycleEtaHours >= 24) {
-              const days = this.cycleEtaHours / 24;
-              return `${days.toFixed(1)} 天`;
-            }
-            return `${this.cycleEtaHours.toFixed(1)} 小时`;
+            return this.formatDurationHours(this.cycleEtaHours);
           },
         },
         methods: {
+          updateTitle() {
+            document.title = this.langPack.title;
+          },
           setLang(lang) {
             this.lang = lang;
             localStorage.setItem("hz_lang", lang);
+            this.updateTitle();
+          },
+          formatDurationHours(hours) {
+            if (hours === null || !Number.isFinite(hours)) return "—";
+            if (hours >= 24) return `${(hours / 24).toFixed(1)} ${this.langPack.dayUnit}`;
+            return `${hours.toFixed(1)} ${this.langPack.hourUnit}`;
+          },
+          formatDurationDays(days) {
+            if (days === null || !Number.isFinite(days)) return "—";
+            return `${days.toFixed(1)} ${this.langPack.dayUnit}`;
           },
           authHeader() {
             return {
@@ -1890,9 +2047,13 @@
             return this.formatDateKey(date);
           },
           formatEta(hours) {
-            if (hours === null || !Number.isFinite(hours)) return "—";
-            if (hours >= 24) return `${(hours / 24).toFixed(1)} 天`;
-            return `${hours.toFixed(1)} 小时`;
+            return this.formatDurationHours(hours);
+          },
+          formatDnsResult(result) {
+            if (result.ok) return `${this.langPack.dnsOk}: ${result.record} -> ${result.resolved}`;
+            if (result.status === "missing") return `${this.langPack.dnsMissingMap}: ${result.id}`;
+            if (result.error) return `${this.langPack.dnsError}: ${result.record} (${result.error})`;
+            return `${this.langPack.dnsMismatch}: ${result.record} -> ${result.resolved}, ${this.langPack.dnsExpected} ${result.expected}`;
           },
           cycleGaugeColorFor(value) {
             if (value >= 19) return "#ef4444";
@@ -2039,7 +2200,7 @@
             try {
               const res = await fetch("/api/servers", { headers: this.authHeader() });
               if (!res.ok) {
-                this.error = "登录失败。";
+                this.error = this.langPack.loginFailed;
                 return;
               }
               localStorage.setItem("hz_user", this.username);
@@ -2047,7 +2208,7 @@
               this.authed = true;
               await this.refresh();
             } catch (e) {
-              this.error = "网络错误。";
+              this.error = this.langPack.networkError;
             }
           },
           logout() {
@@ -2057,7 +2218,7 @@
           async refresh() {
             const res = await fetch("/api/servers", { headers: this.authHeader() });
             if (!res.ok) {
-              this.error = "加载服务器失败。";
+              this.error = this.langPack.loadServersFailed;
               return;
             }
             const data = await res.json();
@@ -2641,7 +2802,7 @@
               return {
                 ...srv,
                 eta_days: etaDays,
-                eta_display: `${etaDays.toFixed(1)} 天 (${this.formatDate(etaDate)})`,
+                eta_display: `${this.formatDurationDays(etaDays)} (${this.formatDate(etaDate)})`,
               };
             });
           },
@@ -2964,20 +3125,15 @@
               body: JSON.stringify(payload),
             });
             if (!res.ok) {
-              alert("DNS 检查失败。");
+              alert(this.langPack.dnsCheckFailed);
               return;
             }
             const data = await res.json();
-            const lines = (data.results || []).map((r) => {
-              if (r.ok) return `OK: ${r.record} -> ${r.resolved}`;
-              if (r.status === "missing") return `缺少映射: ${r.id}`;
-              if (r.error) return `错误: ${r.record} (${r.error})`;
-              return `不匹配: ${r.record} -> ${r.resolved}, 期望 ${r.expected}`;
-            });
+            const lines = (data.results || []).map((r) => this.formatDnsResult(r));
             alert(lines.join("\n"));
           },
           async rebuild(id) {
-            if (!confirm("确定立即重建该服务器？")) return;
+            if (!confirm(this.langPack.rebuildConfirm)) return;
             const res = await fetch("/api/rebuild", {
               method: "POST",
               headers: { "Content-Type": "application/json", ...this.authHeader() },
@@ -2985,14 +3141,15 @@
             });
             const data = await res.json();
             if (!res.ok) {
-              alert("重建失败: " + (data.error || "未知错误"));
+              alert(`${this.langPack.rebuildFailed}: ${data.error || this.langPack.rebuildUnknownError}`);
               return;
             }
-            alert("重建已开始，新 IP: " + data.rebuild.new_ip);
+            alert(this.langPack.rebuildStarted + data.rebuild.new_ip);
             await this.refresh();
           },
         },
         mounted() {
+          this.updateTitle();
           if (this.username && this.password) {
             this.login();
           }

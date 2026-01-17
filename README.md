@@ -1,9 +1,20 @@
 # Hetzner Web
 
+[English](README.md) | [中文](README.zh.md)
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Docker](https://img.shields.io/badge/Docker-ready-2496ED)](#quick-start-docker)
 
 A lightweight Hetzner traffic console with daily/hourly views, rebuild actions, DNS checks, and a clean dashboard.
+
+## About
+
+Hetzner Web is a focused control room for traffic visibility on Hetzner Cloud. It turns raw traffic data into daily and
+hourly insights, highlights cap risk, and keeps rebuild/DNS actions close to the charts so you can react fast.
+
+## Screenshot
+
+![Dashboard](docs/screenshot.png)
 
 ## Features
 
@@ -14,13 +25,16 @@ A lightweight Hetzner traffic console with daily/hourly views, rebuild actions, 
 - Traffic bar chart (outbound/inbound)
 - Basic Auth login
 
-## Screenshots
+## How It Works
 
-Place your screenshot at `docs/screenshot.png` and add it here:
+- Fetches server + traffic data from the Hetzner Cloud API on refresh.
+- Aggregates raw numbers into daily/hourly series and caches a rolling state in `report_state.json`.
+- Serves a static Vue dashboard that renders charts client-side via `/api/*` endpoints.
 
-```md
-![Dashboard](docs/screenshot.png)
-```
+## Tech Stack
+
+- Backend: FastAPI + Python
+- Frontend: Vue 3 (CDN) + vanilla JS/CSS
 
 ## Quick Start (Docker)
 

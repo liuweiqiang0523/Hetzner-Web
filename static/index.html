@@ -91,6 +91,17 @@
         margin-top: 8px;
       }
 
+      .lang-toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .lang-toggle .btn {
+        padding: 6px 10px;
+        font-size: 12px;
+      }
+
       .btn {
         border: 1px solid var(--border);
         background: var(--card);
@@ -798,6 +809,35 @@
         background: rgba(0, 0, 0, 0.2);
       }
 
+      .about-grid {
+        display: grid;
+        gap: 16px;
+      }
+
+      .about-lead {
+        font-size: 16px;
+        color: var(--muted);
+        margin-bottom: 8px;
+      }
+
+      .about-section {
+        display: grid;
+        gap: 8px;
+      }
+
+      .about-section h4 {
+        margin: 0;
+        font-size: 16px;
+        color: #3b2a64;
+      }
+
+      .about-list {
+        margin: 0;
+        padding-left: 18px;
+        color: var(--muted);
+        line-height: 1.6;
+      }
+
       .bars {
         display: grid;
         gap: 10px;
@@ -1306,6 +1346,11 @@
             <div class="toolbar">
               <button class="btn" @click="dnsCheck()">DNS 检查</button>
               <button class="btn danger" @click="logout">退出</button>
+              <div class="lang-toggle">
+                <span class="pill">{{ langPack.langLabel }}</span>
+                <button class="btn" :class="{ accent: lang === 'zh' }" @click="setLang('zh')">中文</button>
+                <button class="btn" :class="{ accent: lang === 'en' }" @click="setLang('en')">EN</button>
+              </div>
               <div class="status">
                 <span class="pill">更新时间</span>
                 <span>{{ updatedAt || "—" }}</span>
@@ -1350,6 +1395,27 @@
                 <div class="status">♻️ 最近重建</div>
                 <div class="metric">{{ lastRebuildAt || "—" }}</div>
                 <div class="muted">{{ lastRebuildServer || "—" }}</div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <h3 class="title-with-icon">📌 {{ langPack.aboutTitle }}</h3>
+            <div class="about-grid">
+              <div>
+                <div class="about-lead">{{ langPack.aboutLead }}</div>
+                <div class="muted">{{ langPack.aboutBody }}</div>
+              </div>
+              <div class="about-section">
+                <h4>{{ langPack.highlightsTitle }}</h4>
+                <ul class="about-list">
+                  <li v-for="item in langPack.highlights" :key="item">{{ item }}</li>
+                </ul>
+              </div>
+              <div class="about-section">
+                <h4>{{ langPack.additionsTitle }}</h4>
+                <ul class="about-list">
+                  <li v-for="item in langPack.additions" :key="item">{{ item }}</li>
+                </ul>
               </div>
             </div>
           </div>
@@ -1524,6 +1590,7 @@
             username: localStorage.getItem("hz_user") || "",
             password: localStorage.getItem("hz_pass") || "",
             authed: false,
+            lang: localStorage.getItem("hz_lang") || "zh",
             servers: [],
             serverFilter: "",
             serverSort: "outbound_desc",
@@ -1650,6 +1717,47 @@
           };
         },
         computed: {
+          langPack() {
+            if (this.lang === "en") {
+              return {
+                langLabel: "Language",
+                aboutTitle: "About",
+                aboutLead: "A focused traffic control room for Hetzner Cloud.",
+                aboutBody:
+                  "Turn raw usage into daily and hourly insight, spot cap risk early, and keep rebuild or DNS actions within reach.",
+                highlightsTitle: "Highlights",
+                highlights: [
+                  "Cycle totals and daily/hourly breakdowns side by side.",
+                  "Per-server sparklines with fast filters and ETA hints.",
+                  "One-click rebuild and DNS checks when traffic spikes.",
+                ],
+                additionsTitle: "Suggested Add-ons",
+                additions: [
+                  "Alerting to Telegram/Slack when usage crosses thresholds.",
+                  "Budget forecast with configurable cost per TB.",
+                  "Tag-based grouping and custom traffic caps.",
+                ],
+              };
+            }
+            return {
+              langLabel: "语言",
+              aboutTitle: "关于",
+              aboutLead: "面向 Hetzner Cloud 的流量控制室。",
+              aboutBody: "把原始用量整理成日/小时洞察，提前发现触顶风险，并把重建/DNS 操作放在触手可及的位置。",
+              highlightsTitle: "亮点",
+              highlights: [
+                "周期总览与日/小时拆分同屏呈现。",
+                "每台机器趋势火花线 + 快速筛选 + ETA 提示。",
+                "流量异常时一键重建与 DNS 检查。",
+              ],
+              additionsTitle: "建议补充",
+              additions: [
+                "到 Telegram/Slack 的流量阈值告警。",
+                "按 TB 计费的预算预测与成本跟踪。",
+                "按标签分组与自定义流量上限。",
+              ],
+            };
+          },
           filteredServers() {
             const query = (this.serverFilter || "").toLowerCase().trim();
             let list = this.servers || [];
@@ -1701,6 +1809,10 @@
           },
         },
         methods: {
+          setLang(lang) {
+            this.lang = lang;
+            localStorage.setItem("hz_lang", lang);
+          },
           authHeader() {
             return {
               Authorization: "Basic " + btoa(this.username + ":" + this.password),

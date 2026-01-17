@@ -23,7 +23,7 @@ hourly insights, highlights cap risk, and keeps rebuild/DNS actions close to the
 ## Screenshot
 
 <img width="2884" height="3973" alt="SCR-20260118-dyza" src="https://github.com/user-attachments/assets/b3e38d94-b655-46f0-998e-1aef311fcac9" />
-
+<img width="712" height="944" alt="Hetzner-web-TG" src="https://github.com/user-attachments/assets/7b4c64f2-abb2-47e7-94b5-fff22adbe345" />
 
 ## Features
 

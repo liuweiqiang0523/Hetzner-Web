@@ -22,7 +22,7 @@ hourly insights, highlights cap risk, and keeps rebuild/DNS actions close to the
 
 ## Screenshot
 
-![Uploading SCR-20260118-dyza.png…]()
+<img width="2884" height="3973" alt="SCR-20260118-dyza" src="https://github.com/user-attachments/assets/b3e38d94-b655-46f0-998e-1aef311fcac9" />
 
 
 ## Features

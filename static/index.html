@@ -207,6 +207,7 @@
         height: 32px;
       }
 
+
       .lang-toggle {
         display: inline-flex;
         align-items: center;
@@ -1567,6 +1568,55 @@
       @media (max-width: 640px) {
         .container {
           padding: 20px 14px 60px;
+          display: flex;
+          flex-direction: column;
+        }
+        .lang-floating {
+          position: static;
+          display: flex;
+          flex-direction: column;
+          justify-content: flex-end;
+          align-items: flex-end;
+          width: fit-content;
+          max-width: 100%;
+          margin-left: 0;
+          align-self: flex-end;
+          text-align: right;
+          margin-bottom: 6px;
+        }
+        .lang-floating .btn {
+          width: auto;
+        }
+        .overview-head {
+          flex-direction: row;
+          flex-wrap: wrap;
+          align-items: flex-start;
+          gap: 10px;
+        }
+        .overview-text {
+          flex: 1 1 220px;
+        }
+        .overview-tools {
+          width: 100%;
+          justify-items: end;
+          align-items: end;
+        }
+        .toolbar-actions {
+          width: 100%;
+          height: auto;
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: flex-end;
+          align-items: center;
+        }
+        .toolbar-actions .btn {
+          width: auto;
+        }
+        .status.align-right {
+          justify-content: flex-end;
+          width: 100%;
+          height: auto;
+          text-align: right;
         }
         .hero {
           width: 100%;
@@ -1599,8 +1649,11 @@
           width: 100%;
         }
         .btn {
-          width: 100%;
+          width: auto;
           text-align: center;
+        }
+        .login .btn {
+          width: 100%;
         }
         .grid-3,
         .grid-2,
@@ -1695,11 +1748,6 @@
       </div>
 
       <template v-else>
-        <div class="lang-floating">
-          <span class="pill">{{ langPack.langLabel }}</span>
-          <button class="btn" :class="{ accent: lang === 'zh' }" @click="setLang('zh')">中文</button>
-          <button class="btn" :class="{ accent: lang === 'en' }" @click="setLang('en')">EN</button>
-        </div>
         <section class="grid">
           <div class="card overview-card">
             <div class="overview-head">
@@ -1709,11 +1757,13 @@
               </div>
               <div class="toolbar-right stack overview-tools">
                 <div class="toolbar-actions">
+                  <button class="btn" :class="{ accent: lang === 'zh' }" @click="setLang('zh')">中文</button>
                   <button class="btn" @click="toggleTheme">{{ themeToggleText }}</button>
                   <button class="btn" @click="dnsCheck()">{{ langPack.dnsCheck }}</button>
                   <button class="btn danger logout-btn" @click="logout">{{ langPack.logout }}</button>
                 </div>
                 <div class="status align-right">
+                  <button class="btn" :class="{ accent: lang === 'en' }" @click="setLang('en')">EN</button>
                   <span class="pill">{{ langPack.updatedAt }}</span>
                   <span>{{ updatedAt || "—" }}</span>
                 </div>

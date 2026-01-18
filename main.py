@@ -1715,6 +1715,11 @@ def index() -> FileResponse:
     return FileResponse(os.path.join(STATIC_DIR, "index.html"))
 
 
+@app.get("/demo")
+def demo() -> FileResponse:
+    return FileResponse(os.path.join(STATIC_DIR, "index.html"))
+
+
 @app.get("/api/servers")
 def api_servers(request: Request) -> JSONResponse:
     _require_auth(request)

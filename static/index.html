@@ -1999,11 +1999,12 @@
           const browserLang = (navigator.language || "").toLowerCase();
           const defaultLang = storedLang || (browserLang.startsWith("zh") ? "zh" : "en");
           const params = new URLSearchParams(window.location.search);
+          const isDemoPath = window.location.pathname.replace(/\/+$/, "") === "/demo";
           return {
             username: localStorage.getItem("hz_user") || "",
             password: localStorage.getItem("hz_pass") || "",
             authed: false,
-            demoMode: params.get("demo") === "1",
+            demoMode: params.get("demo") === "1" || isDemoPath,
             lang: defaultLang,
             servers: [],
             serverFilter: "",
@@ -2214,6 +2215,7 @@
                 networkError: "Network error.",
                 loadServersFailed: "Failed to load servers.",
                 dnsCheckFailed: "DNS check failed.",
+                demoActionDisabled: "Demo mode: action is disabled.",
                 dnsMissingMap: "Missing mapping",
                 dnsError: "Error",
                 dnsMismatch: "Mismatch",
@@ -2307,6 +2309,7 @@
                 networkError: "网络错误。",
                 loadServersFailed: "加载服务器失败。",
                 dnsCheckFailed: "DNS 检查失败。",
+                demoActionDisabled: "演示模式下无法执行该操作。",
                 dnsMissingMap: "缺少映射",
                 dnsError: "错误",
                 dnsMismatch: "不匹配",
@@ -3674,6 +3677,10 @@
             this.fetchHourly();
           },
           async dnsCheck(id) {
+            if (this.demoMode) {
+              alert(this.langPack.demoActionDisabled);
+              return;
+            }
             const payload = id ? { server_id: id } : {};
             const res = await fetch("/api/dns_check", {
               method: "POST",
@@ -3689,6 +3696,10 @@
             alert(lines.join("\n"));
           },
           async rebuild(id) {
+            if (this.demoMode) {
+              alert(this.langPack.demoActionDisabled);
+              return;
+            }
             if (!confirm(this.langPack.rebuildConfirm)) return;
             const res = await fetch("/api/rebuild", {
               method: "POST",
@@ -3707,6 +3718,11 @@
         mounted() {
           this.updateTitle();
           this.applyTheme();
+          if (this.demoMode) {
+            this.authed = true;
+            this.refresh();
+            return;
+          }
           if (this.username && this.password) {
             this.login();
           }

@@ -1752,15 +1752,18 @@
           <div class="card overview-card">
             <div class="overview-head">
               <div class="overview-text">
-                <h3 class="title-with-icon">{{ langPack.overviewTitle }}</h3>
+                <h3 class="title-with-icon">
+                  {{ langPack.overviewTitle }}
+                  <span v-if="demoMode" class="pill">DEMO</span>
+                </h3>
                 <div class="subtitle">{{ langPack.overviewSubtitle }}</div>
               </div>
               <div class="toolbar-right stack overview-tools">
                 <div class="toolbar-actions">
                   <button class="btn" :class="{ accent: lang === 'zh' }" @click="setLang('zh')">中文</button>
                   <button class="btn" @click="toggleTheme">{{ themeToggleText }}</button>
-                  <button class="btn" @click="dnsCheck()">{{ langPack.dnsCheck }}</button>
-                  <button class="btn danger logout-btn" @click="logout">{{ langPack.logout }}</button>
+                  <button v-if="!demoMode" class="btn" @click="dnsCheck()">{{ langPack.dnsCheck }}</button>
+                  <button v-if="!demoMode" class="btn danger logout-btn" @click="logout">{{ langPack.logout }}</button>
                 </div>
                 <div class="status align-right">
                   <button class="btn" :class="{ accent: lang === 'en' }" @click="setLang('en')">EN</button>
@@ -1879,8 +1882,8 @@
                       </div>
                     </td>
                     <td>
-                      <button class="btn" @click="dnsCheck(s.id)">{{ langPack.dnsCheck }}</button>
-                      <button class="btn danger" @click="rebuild(s.id)">{{ langPack.rebuild }}</button>
+                      <button v-if="!demoMode" class="btn" @click="dnsCheck(s.id)">{{ langPack.dnsCheck }}</button>
+                      <button v-if="!demoMode" class="btn danger" @click="rebuild(s.id)">{{ langPack.rebuild }}</button>
                     </td>
                   </tr>
                 </tbody>

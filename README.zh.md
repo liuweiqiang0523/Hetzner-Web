@@ -2,7 +2,7 @@
 
 [English](README.md) | [中文](README.zh.md)
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE.md)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Docker](https://img.shields.io/badge/Docker-ready-2496ED)](#快速开始-docker)
 
 一个轻量的 Hetzner 流量控制台，提供日/小时视图、重建操作、DNS 检查和清晰的仪表盘。

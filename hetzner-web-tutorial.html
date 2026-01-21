@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Hetzner-Web 合并与部署教程</title>
+  <style>
+    body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", Arial, sans-serif; line-height: 1.75; color:#222; }
+    h1,h2,h3 { margin: 1.2em 0 0.6em; }
+    p { margin: 0.6em 0; }
+    code, pre { background:#f6f6f9; border:1px solid #eee; border-radius:6px; }
+    pre { padding:12px; overflow:auto; }
+    code { padding:2px 6px; }
+    .muted { color:#666; }
+    .note { background:#f9fbff; border:1px solid #e6efff; padding:10px 12px; border-radius:8px; }
+    ul { margin: 0.4em 0 0.8em 1.2em; }
+  </style>
+</head>
+<body>
+  <h1>Hetzner-Web 合并与部署教程</h1>
+  <p class="muted">本教程记录如何把 Web 面板与 Automation 合并到一个仓库，并完成部署、验证与维护。</p>
+
+  <h2>1. 背景与目标</h2>
+  <p>将 Hetzner-Automation 合并到 Hetzner-Web（<code>automation/</code> 目录），实现统一维护。</p>
+  <ul>
+    <li>Web 面板统一展示流量与状态</li>
+    <li>Telegram 接收通知并可执行管理命令</li>
+    <li>达量自动删机、快照重建、自动恢复 DNS</li>
+  </ul>
+
+  <h2>2. 仓库结构</h2>
+  <pre><code>Hetzner-Web/
+├─ automation/       # 自动化监控 + Telegram
+├─ static/           # Web 前端
+├─ main.py           # Web + 后台调度
+└─ docker-compose.yml
+</code></pre>
+
+  <h2>3. 一键安装</h2>
+  <h3>3.1 Web 面板</h3>
+  <pre><code>curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/scripts/install-docker.sh | bash</code></pre>
+
+  <h3>3.2 Automation 监控</h3>
+  <pre><code>curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/automation/install_hetzner_monitor.sh | sudo bash</code></pre>
+
+  <h2>4. 核心配置（config.yaml）</h2>
+  <pre><code>hetzner:
+  api_token: "YOUR_HETZNER_API_TOKEN"
+
+traffic:
+  limit_gb: 18432
+  check_interval: 5
+  exceed_action: "rebuild"
+
+telegram:
+  enabled: true
+  bot_token: "YOUR_TELEGRAM_BOT_TOKEN"
+  chat_id: "YOUR_CHAT_ID"
+  notify_levels: [10,20,30,40,50,60,70,80,90,95,100]
+
+cloudflare:
+  api_token: "YOUR_CF_TOKEN"
+  zone_id: "YOUR_ZONE_ID"
+  record_map:
+    "SERVER_ID_1": "server-1.example.com"
+    "SERVER_ID_2": "server-2.example.com"
+
+rebuild:
+  snapshot_id_map:
+    "SERVER_ID_1": "SNAPSHOT_ID_1"
+    "SERVER_ID_2": "SNAPSHOT_ID_2"
+  fallback_template:
+    server_type: "cx43"
+    location: "nbg1"
+    ssh_keys: []
+</code></pre>
+
+  <h2>5. Telegram 命令（教程风格清单）</h2>
+  <h3>5.1 查询类</h3>
+  <pre><code>/list
+/status
+/traffic ID
+/today ID
+/report
+/reportstatus
+/reportreset
+/dnstest ID
+/dnscheck ID
+</code></pre>
+
+  <h3>5.2 控制类</h3>
+  <pre><code>/startserver &lt;ID&gt;
+/stopserver &lt;ID&gt;
+/reboot &lt;ID&gt;
+/delete &lt;ID&gt; confirm
+/rebuild &lt;ID&gt;
+</code></pre>
+
+  <h3>5.3 快照管理</h3>
+  <pre><code>/snapshots
+/createsnapshot &lt;ID&gt;
+/createfromsnapshot &lt;SNAP_ID&gt;
+/createfromsnapshots
+</code></pre>
+
+  <h3>5.4 定时任务</h3>
+  <pre><code>/scheduleon
+/scheduleoff
+/schedulestatus
+/scheduleset delete=23:50,01:00 create=08:00,09:00
+</code></pre>
+
+  <h3>5.5 DNS</h3>
+  <pre><code>/dnsync</code></pre>
+
+  <h2>6. Web 面板优化要点</h2>
+  <ul>
+    <li>紫色主题 + 日/夜模式</li>
+    <li>总览与控制按钮对齐优化</li>
+    <li>每日流量柱状图：按天分组、按服务器显示出/入站</li>
+  </ul>
+
+  <h2>7. 数据不显示的排查</h2>
+  <div class="note">
+    <p><strong>现象：</strong>总览和图表都是 0。</p>
+    <p><strong>原因：</strong>首次启动缺少历史快照。</p>
+    <p><strong>解决：</strong>系统已增加后台快照循环，按 <code>traffic.check_interval</code> 记录数据，等待 1～2 个周期后刷新即可。</p>
+  </div>
+
+  <h2>8. 更新与重建</h2>
+  <pre><code>cd /opt/hetzner-web
+git pull
+docker compose up -d --build
+</code></pre>
+
+  <h2>9. 旧仓库处理建议</h2>
+  <p>建议先将 <code>Hetzner-Automation</code> 设置为私有，确认无依赖后再删除。</p>
+
+  <hr />
+  <p class="muted">提示：此控制台使用 Basic Auth，建议通过 HTTPS 访问。| build 20260116-01 By__22号仔Stringer🫧</p>
+</body>
+</html>

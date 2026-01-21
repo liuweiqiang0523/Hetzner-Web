@@ -114,6 +114,37 @@ def _parse_hour(key: str) -> Optional[int]:
         return None
 
 
+def _active_server_name_map(config: Dict[str, Any]) -> Dict[str, str]:
+    try:
+        client = HetznerClient(config["hetzner"]["api_token"])
+        servers = client.get_servers()
+    except Exception:
+        return {}
+    return {str(s["id"]): s.get("name") or str(s["id"]) for s in servers}
+
+
+def _filter_snapshot(
+    snapshot: Dict[str, Any],
+    include_ids: Optional[set],
+    name_map: Optional[Dict[str, str]] = None,
+) -> Dict[str, Any]:
+    if not include_ids:
+        return snapshot
+    filtered: Dict[str, Any] = {}
+    for sid, data in snapshot.items():
+        sid_str = str(sid)
+        if sid_str not in include_ids:
+            continue
+        if isinstance(data, dict):
+            entry = dict(data)
+            if name_map and sid_str in name_map:
+                entry["name"] = name_map[sid_str]
+            filtered[sid_str] = entry
+        else:
+            filtered[sid_str] = data
+    return filtered
+
+
 def _compute_cycle_data(
     hourly: Dict[str, Any],
     include_ids: Optional[set] = None,
@@ -1833,6 +1864,9 @@ def api_hourly(request: Request, date: Optional[str] = None) -> JSONResponse:
     _require_auth(request)
     state = _load_json(REPORT_STATE_PATH)
     hourly = state.get("hourly", {})
+    config = _load_yaml(CONFIG_PATH)
+    name_map = _active_server_name_map(config)
+    include_ids = set(name_map.keys()) if name_map else None
     keys = sorted(hourly.keys())
     if date:
         try:
@@ -1846,8 +1880,10 @@ def api_hourly(request: Request, date: Optional[str] = None) -> JSONResponse:
         rows: Dict[str, Any] = {}
         for curr_key in selected_keys:
             prev_key = prev_map.get(curr_key)
-            prev = hourly.get(prev_key, {}) if prev_key else {}
-            curr = hourly.get(curr_key, {})
+            prev_raw = hourly.get(prev_key, {}) if prev_key else {}
+            curr_raw = hourly.get(curr_key, {})
+            prev = _filter_snapshot(prev_raw, include_ids, name_map)
+            curr = _filter_snapshot(curr_raw, include_ids, name_map)
             deltas = _delta_by_name(prev, curr)
             for name in deltas:
                 if name not in rows:
@@ -1864,8 +1900,10 @@ def api_hourly(request: Request, date: Optional[str] = None) -> JSONResponse:
     for i in range(1, len(keys)):
         prev_key = keys[i - 1]
         curr_key = keys[i]
-        prev = hourly.get(prev_key, {})
-        curr = hourly.get(curr_key, {})
+        prev_raw = hourly.get(prev_key, {})
+        curr_raw = hourly.get(curr_key, {})
+        prev = _filter_snapshot(prev_raw, include_ids, name_map)
+        curr = _filter_snapshot(curr_raw, include_ids, name_map)
         deltas = _delta_by_name(prev, curr)
         for name in deltas:
             if name not in rows:
@@ -1883,6 +1921,9 @@ def api_daily(request: Request) -> JSONResponse:
     _require_auth(request)
     state = _load_json(REPORT_STATE_PATH)
     hourly = state.get("hourly", {})
+    config = _load_yaml(CONFIG_PATH)
+    name_map = _active_server_name_map(config)
+    include_ids = set(name_map.keys()) if name_map else None
     keys = sorted(hourly.keys())
     if len(keys) < 2:
         return JSONResponse({"days": [], "peak": "0.000", "total": "0.000", "servers": []})
@@ -1897,8 +1938,10 @@ def api_daily(request: Request) -> JSONResponse:
         date_key = _date_from_hour_key(curr_key)
         if not date_key:
             continue
-        prev = hourly.get(prev_key, {})
-        curr = hourly.get(curr_key, {})
+        prev_raw = hourly.get(prev_key, {})
+        curr_raw = hourly.get(curr_key, {})
+        prev = _filter_snapshot(prev_raw, include_ids, name_map)
+        curr = _filter_snapshot(curr_raw, include_ids, name_map)
         deltas = _delta_by_name(prev, curr)
         for name, data in deltas.items():
             if data.get("has_out"):

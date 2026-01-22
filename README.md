@@ -1,17 +1,19 @@
 # Hetzner Web
 
+![Hetzner-Web](docs/brand-logo.svg)
+
 [English](README.md) | [中文](README.zh.md)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Docker](https://img.shields.io/badge/Docker-ready-2496ED)](#30-second-quick-start-all-in-one)
+[![Docker](https://img.shields.io/badge/Docker-ready-2496ED)](#quick-start)
 
 A lightweight Hetzner traffic dashboard + automation monitor. Includes a web UI, Telegram alerts/commands, auto rebuilds, and DNS checks.
 
 ---
 
-## 1) 30-second quick start (all-in-one)
+## ![Start](docs/icon-start.svg) Quick Start
 
-If this is your first time, use the **all-in-one script** to install Web + automation + Telegram support in one go.
+If this is your first time, use the all-in-one script to install Web + automation + Telegram support in one go.
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/scripts/install-all.sh | sudo bash
@@ -23,22 +25,28 @@ Then continue with **Config Setup** below.
 
 ---
 
-## Screenshots
+## ![Camera](docs/icon-camera.svg) Screenshots
 
 ![Web Dashboard](docs/web.png)
 ![Telegram Bot](docs/telegram.png)
 
 ---
 
-## 2) Which install do I need?
+## ![Install](docs/icon-install.svg) Install Options
 
-- New users: use the **all-in-one script** (Web + automation + Telegram).
-- Web-only dashboard: use the **Web install script**.
-- Automation-only: use the **automation install script**.
+- All-in-one (recommended): `scripts/install-all.sh`
+- Web-only: `scripts/install-docker.sh`
+- Automation-only: `automation/install_hetzner_monitor.sh`
+
+Existing deployments are safe by default. The all-in-one script exits if the install dir exists. If you really want to update an existing install:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/scripts/install-all.sh | sudo ALLOW_UPDATE=1 bash
+```
 
 ---
 
-## 3) Check prerequisites (beginner-friendly)
+## ![Check](docs/icon-check.svg) Prerequisites
 
 Make sure these commands exist:
 
@@ -54,26 +62,16 @@ If any are missing, install them first (Ubuntu/Debian: `apt`).
 
 ---
 
-## 4) All-in-one install (recommended)
+## ![Config](docs/icon-config.svg) Config Setup
 
-### Step 1: Run the installer
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/scripts/install-all.sh | sudo bash
-```
-
-### Step 2: Fill in configs (important)
-
-**Web config:**
+**Web config**
 - `config.yaml`: set `hetzner.api_token`
 - `web_config.json`: set `username` / `password`
 
-**Automation config:**
+**Automation config**
 - `automation/config.yaml`: set Hetzner/Telegram/Cloudflare if needed
 
-> Note: if `HETZNER_API_TOKEN` was not provided, the script uses example config. You must edit it manually.
-
-### Step 3: Restart to apply
+Apply changes:
 
 ```bash
 cd /opt/hetzner-web
@@ -82,13 +80,11 @@ docker compose up -d --build
 sudo systemctl restart hetzner-monitor.service
 ```
 
-### Step 4: Open the dashboard
-
 Open: `http://<your-server-ip>:1227`
 
 ---
 
-## 5) Telegram setup (most used)
+## ![Telegram](docs/icon-telegram.svg) Telegram Setup
 
 In `automation/config.yaml`:
 
@@ -107,49 +103,7 @@ sudo systemctl restart hetzner-monitor.service
 
 ---
 
-## 6) Web-only install (optional)
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/scripts/install-docker.sh | bash
-```
-
-Edit `config.yaml` + `web_config.json`, then:
-
-```bash
-docker compose up -d --build
-```
-
----
-
-## 7) Automation-only install (optional)
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/automation/install_hetzner_monitor.sh | sudo bash
-```
-
-Edit `automation/config.yaml`, then:
-
-```bash
-sudo systemctl restart hetzner-monitor.service
-```
-
----
-
-## 8) Will this affect an existing deployment?
-
-By default, **no**.
-
-The all-in-one script exits if the install directory already exists, to avoid touching your current setup.
-
-If you really want to update an existing install (not beginner-friendly):
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/scripts/install-all.sh | sudo ALLOW_UPDATE=1 bash
-```
-
----
-
-## 9) Config file locations
+## ![Map](docs/icon-map.svg) Config File Locations
 
 ![Config Files](docs/config-files.light.svg)
 
@@ -159,7 +113,7 @@ curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/sc
 
 ---
 
-## 10) Troubleshooting (visual guide)
+## ![Tools](docs/icon-tools.svg) Troubleshooting
 
 ![Troubleshooting Flow](docs/troubleshooting-flow.light.svg)
 
@@ -170,7 +124,7 @@ Quick checks:
 
 ---
 
-## 11) Project layout
+## ![Layout](docs/icon-layout.svg) Project Layout
 
 - Web dashboard (this directory): FastAPI + Vue, Docker-first
 - Automation monitor: `automation/` (CLI/systemd service)
@@ -180,7 +134,7 @@ More docs:
 
 ---
 
-## 12) Features
+## ![List](docs/icon-list.svg) Features
 
 - Real-time server traffic (outbound/inbound)
 - Daily/hourly breakdown tables + per-server bars
@@ -193,7 +147,13 @@ More docs:
 
 ---
 
-## 13) Security notes
+## ![Shield](docs/icon-shield.svg) Security Notes
 
 - `config.yaml` / `web_config.json` / `automation/config.yaml` are sensitive. Do not commit them.
 - Use HTTPS reverse proxy for public access.
+
+---
+
+## Brand
+
+![Brand Palette](docs/brand-palette.svg)

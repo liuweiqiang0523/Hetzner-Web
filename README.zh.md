@@ -1,46 +1,54 @@
 # Hetzner Web
 
+![Hetzner-Web](docs/brand-logo.svg)
+
 [English](README.md) | [中文](README.zh.md)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Docker](https://img.shields.io/badge/Docker-ready-2496ED)](#30-秒上手二合一推荐)
+[![Docker](https://img.shields.io/badge/Docker-ready-2496ED)](#快速开始)
 
 一个轻量的 Hetzner 流量控制台 + 自动化监控工具。支持可视化仪表盘、Telegram 通知/命令、自动重建、DNS 检查。
 
 ---
 
-## 1) 30 秒上手（二合一推荐）
+## ![Start](docs/icon-start.svg) 快速开始
 
-如果你是第一次用，**直接用二合一脚本**，一次性装好 Web + automation + Telegram 支持。
+第一次使用直接选二合一脚本，一次性装好 Web + automation + Telegram 支持。
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/scripts/install-all.sh | sudo bash
 ```
 
-安装完成后，继续看下面「**配置填写**」。
+然后继续看「配置设置」。
 
 ![安装流程](docs/quickstart-flow.light.svg)
 
 ---
 
-## 界面截图
+## ![Camera](docs/icon-camera.svg) 界面截图
 
 ![Web 控制台](docs/web.png)
 ![Telegram 机器人](docs/telegram.png)
 
 ---
 
-## 2) 我该装哪一个？
+## ![Install](docs/icon-install.svg) 安装方式
 
-- 新手/省事：用 **二合一脚本**（Web + automation + Telegram）。
-- 只要网页仪表盘：用 **Web 一键脚本**。
-- 只要自动化监控：用 **automation 一键脚本**。
+- 二合一（推荐）：`scripts/install-all.sh`
+- 只装 Web：`scripts/install-docker.sh`
+- 只装 automation：`automation/install_hetzner_monitor.sh`
+
+默认不会影响已有部署。二合一脚本发现目录已存在会直接退出。如果你确实要更新已有安装：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/scripts/install-all.sh | sudo ALLOW_UPDATE=1 bash
+```
 
 ---
 
-## 3) 先确认环境（新手必看）
+## ![Check](docs/icon-check.svg) 环境要求
 
-脚本不会帮你装系统依赖，请先确认这些命令可用：
+先确认这些命令可用：
 
 ```bash
 git --version
@@ -50,30 +58,20 @@ docker compose version
 systemctl --version
 ```
 
-如果缺少，请先安装对应组件（Ubuntu/Debian 通常可用 apt 安装）。
+如果缺少，请先安装（Ubuntu/Debian 可用 apt）。
 
 ---
 
-## 4) 二合一一键安装（推荐）
+## ![Config](docs/icon-config.svg) 配置设置
 
-### 第一步：运行脚本
+**Web 配置**
+- `config.yaml`：填写 `hetzner.api_token`
+- `web_config.json`：填写 `username` / `password`
 
-```bash
-curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/scripts/install-all.sh | sudo bash
-```
+**Automation 配置**
+- `automation/config.yaml`：填写 Hetzner/Telegram/Cloudflare 等
 
-### 第二步：填写配置（非常重要）
-
-**Web 配置：**
-- `config.yaml`：填写 `hetzner.api_token`。
-- `web_config.json`：填写 `username` / `password`。
-
-**Automation 配置：**
-- `automation/config.yaml`：填写 Hetzner/Telegram/Cloudflare 等（如需通知）。
-
-> 注意：如果脚本没有检测到 `HETZNER_API_TOKEN`，会先使用示例配置。你一定要手动填写。
-
-### 第三步：重启让配置生效
+应用配置：
 
 ```bash
 cd /opt/hetzner-web
@@ -82,13 +80,11 @@ docker compose up -d --build
 sudo systemctl restart hetzner-monitor.service
 ```
 
-### 第四步：打开网页
-
-浏览器访问：`http://<你的服务器IP>:1227`
+打开：`http://<你的服务器IP>:1227`
 
 ---
 
-## 5) Telegram 配置（最常用）
+## ![Telegram](docs/icon-telegram.svg) Telegram 配置
 
 在 `automation/config.yaml` 中填：
 
@@ -99,7 +95,7 @@ telegram:
   chat_id: "你的 Chat ID"
 ```
 
-填完重启 automation：
+然后重启 automation：
 
 ```bash
 sudo systemctl restart hetzner-monitor.service
@@ -107,49 +103,7 @@ sudo systemctl restart hetzner-monitor.service
 
 ---
 
-## 6) 只装 Web（可选）
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/scripts/install-docker.sh | bash
-```
-
-装完后填写：`config.yaml` + `web_config.json`，然后执行：
-
-```bash
-docker compose up -d --build
-```
-
----
-
-## 7) 只装 Automation（可选）
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/automation/install_hetzner_monitor.sh | sudo bash
-```
-
-装完后填写：`automation/config.yaml`，然后执行：
-
-```bash
-sudo systemctl restart hetzner-monitor.service
-```
-
----
-
-## 8) 已有部署会被改动吗？
-
-默认 **不会**。
-
-二合一脚本遇到已存在的目录会直接退出，避免覆盖你现有的部署。
-
-如果你明确要更新已有目录（不推荐新手）：
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/scripts/install-all.sh | sudo ALLOW_UPDATE=1 bash
-```
-
----
-
-## 9) 配置文件在哪里？
+## ![Map](docs/icon-map.svg) 配置文件位置
 
 ![配置文件速查](docs/config-files.light.svg)
 
@@ -159,7 +113,7 @@ curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/sc
 
 ---
 
-## 10) 排错图（新手必备）
+## ![Tools](docs/icon-tools.svg) 排错指南
 
 ![排错流程](docs/troubleshooting-flow.light.svg)
 
@@ -170,18 +124,17 @@ curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/sc
 
 ---
 
-## 11) 项目结构
+## ![Layout](docs/icon-layout.svg) 项目结构
 
-- Web 控制台（本目录）：FastAPI + Vue，Docker 优先。
-- 自动化监控：`automation/`（CLI/Systemd 服务）。
+- Web 控制台（本目录）：FastAPI + Vue，Docker 优先
+- 自动化监控：`automation/`（CLI/Systemd 服务）
 
 相关文档：
-- Web 说明：`README.zh.md`（当前文件）
 - Automation 说明：`automation/README_CN.md`
 
 ---
 
-## 12) 功能一览
+## ![List](docs/icon-list.svg) 功能一览
 
 - 实时服务器流量（出站/入站）
 - 日/小时拆分表 + 每日单机柱状图
@@ -194,27 +147,13 @@ curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/sc
 
 ---
 
-## 13) 安全说明
+## ![Shield](docs/icon-shield.svg) 安全说明
 
 - `config.yaml` / `web_config.json` / `automation/config.yaml` 都是敏感文件，请不要提交到 Git。
 - 建议通过 HTTPS 反向代理访问。
 
 ---
 
-## Telegram 常用命令（附录）
+## 品牌色卡
 
-查询类：
-- `/list`：服务器列表
-- `/status`：系统状态
-- `/traffic ID`：流量详情
-- `/today ID`：今日流量
-- `/report`：手动流量汇报
-- `/dnstest ID`：测试 DNS 更新
-- `/dnscheck ID`：DNS 解析检查
-
-控制类：
-- `/startserver <ID>`：启动服务器
-- `/stopserver <ID>`：停止服务器
-- `/reboot <ID>`：重启服务器
-- `/delete <ID> confirm`：删除服务器
-- `/rebuild <ID>`：重建服务器
+![Brand Palette](docs/brand-palette.svg)

@@ -1302,14 +1302,44 @@ def _handle_bot_command(text: str, config: Dict[str, Any], client: "HetznerClien
     if command in ("/status", "/ll"):
         servers = client.get_servers()
         total = len(servers)
-        running = sum(1 for s in servers if s.get("status") == "running")
+        running_statuses = {"running"}
+        starting_statuses = {"starting", "initializing", "rebuilding"}
+        stopped_statuses = {"off", "stopping", "deleting"}
+        running = 0
+        starting = 0
+        stopped = 0
+        unknown = 0
+        lines = []
+        for s in servers:
+            status = s.get("status") or "unknown"
+            name = s.get("name") or s.get("id")
+            if status in running_statuses:
+                running += 1
+                label = "🟢 运行中"
+            elif status in starting_statuses:
+                starting += 1
+                label = "🟡 启动中"
+            elif status in stopped_statuses:
+                stopped += 1
+                label = "🔴 已停止"
+            else:
+                unknown += 1
+                label = "⚪ 未知"
+            lines.append(f"{label} · {name} (`{s.get('id')}`)")
+        telegram_cfg = config.get("telegram", {})
+        levels = _parse_alert_levels(telegram_cfg.get("notify_levels"))
+        notify_text = f\"{', '.join(str(x) for x in levels)}%\" if levels else \"-\"
         return (
             "📊 *系统状态概览*\n\n"
             f"🖥 服务器总数: {total} 台\n"
             f"🟢 运行中: {running} 台\n"
-            f"🔴 已停止: {total - running} 台\n\n"
-            "🔔 通知间隔: 10%\n"
-            "✅ 监控系统正常运行"
+            f"🟡 启动中: {starting} 台\n"
+            f"🔴 已停止: {stopped} 台\n"
+            f"⚪ 未知: {unknown} 台\n\n"
+            f"🔔 通知间隔: {notify_text}\n"
+            "✅ 监控系统正常运行\n\n"
+            "🖥 服务器明细:\n"
+            + ("\n".join(lines) if lines else "暂无服务器")
         )
 
     if command == "/traffic":

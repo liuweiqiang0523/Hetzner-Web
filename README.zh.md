@@ -61,7 +61,8 @@ curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/sc
 
 ![Use Cases](docs/use-cases.svg)
 
-常见场景：流量封顶告警、夜间删建机、Telegram 随时操作。
+更适合「流量可视化优先 + 自动化辅助 + 随时手动控制」的场景。
+常见用法：流量封顶告警、夜间删建机、Telegram 随时操作。
 
 ---
 
@@ -192,6 +193,15 @@ A：确认 `automation/config.yaml` 里的 `bot_token`/`chat_id`，然后重启�
 
 Q：改了配置没生效？  
 A：Web 运行 `docker compose up -d --build`，automation 运行 `systemctl restart`。
+
+Q：配置文件在哪里？  
+A：Web 在 `/opt/hetzner-web/`，automation 在 `/opt/hetzner-web/automation/`。
+
+Q：我该选哪个安装方式？  
+A：大多数人用二合一即可，除非你明确只要其中一个服务。
+
+Q：能不能重复跑安装脚本？  
+A：默认不会覆盖已有目录，除非你显式设置 `ALLOW_UPDATE=1`。
 
 ---
 

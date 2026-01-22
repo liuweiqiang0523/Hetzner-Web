@@ -61,7 +61,8 @@ Then continue with **Config Setup** below.
 
 ![Use Cases](docs/use-cases.svg)
 
-Typical scenarios: traffic cap alerts, nightly cleanup/rebuild, and Telegram-based ops on the go.
+Short and practical: this is built for bandwidth caps, night-time ops, and fast actions from Telegram.
+Use it when you want visibility first, automation second, and manual control always nearby.
 
 ---
 
@@ -192,6 +193,15 @@ A: Verify `bot_token` and `chat_id` in `automation/config.yaml`, then restart th
 
 Q: I edited configs but nothing changed.  
 A: Rebuild web with `docker compose up -d --build` and restart automation with `systemctl restart`.
+
+Q: Where are my config files stored?  
+A: Web configs live in `/opt/hetzner-web/` and automation config is in `/opt/hetzner-web/automation/`.
+
+Q: Which install should I choose?  
+A: Most users should pick the all-in-one script; only choose web-only or automation-only if you know you need just one.
+
+Q: Can I re-run the install script safely?  
+A: The all-in-one script exits if the install dir exists unless you set `ALLOW_UPDATE=1`.
 
 ---
 

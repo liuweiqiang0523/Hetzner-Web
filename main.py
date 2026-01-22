@@ -218,9 +218,10 @@ def _compute_cycle_data(
 
 def _delta_by_name(prev: Dict[str, Any], curr: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
     aggregates: Dict[str, Dict[str, Any]] = {}
-    for sid, data in curr.items():
-        prev_data = prev.get(sid, {})
-        name = data.get("name") or prev_data.get("name") or str(sid)
+    prev_by_name = _merge_hourly_snapshot(prev)
+    curr_by_name = _merge_hourly_snapshot(curr)
+    for name, data in curr_by_name.items():
+        prev_data = prev_by_name.get(name, {})
         prev_out = prev_data.get("outbound_bytes")
         curr_out = data.get("outbound_bytes")
         prev_in = prev_data.get("inbound_bytes")

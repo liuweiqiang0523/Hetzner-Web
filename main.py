@@ -81,6 +81,151 @@ def _date_from_hour_key(key: str) -> Optional[str]:
     return key.split(" ", 1)[0] if " " in key else None
 
 
+def _telegram_inline_keyboard(menu: str) -> Dict[str, Any]:
+    if menu == "query":
+        keyboard = [
+            [
+                {"text": "🖥 服务器列表", "callback_data": "cmd:/list"},
+                {"text": "📄 列表(代码块)", "callback_data": "cmd:/listcode"},
+            ],
+            [
+                {"text": "📈 系统状态", "callback_data": "cmd:/status"},
+                {"text": "📊 流量汇总", "callback_data": "cmd:/traffic"},
+            ],
+            [
+                {"text": "📅 今日流量", "callback_data": "cmd:/today"},
+                {"text": "🕒 流量汇报", "callback_data": "cmd:/report"},
+            ],
+            [
+                {"text": "📋 汇报状态", "callback_data": "cmd:/reportstatus"},
+                {"text": "♻️ 重置汇报", "callback_data": "cmd:/reportreset"},
+            ],
+            [
+                {"text": "📦 快照列表", "callback_data": "cmd:/snapshots"},
+                {"text": "🔧 DNS测试 ID", "callback_data": "prompt:/dnstest"},
+            ],
+            [
+                {"text": "✅ DNS检查 ID", "callback_data": "prompt:/dnscheck"},
+                {"text": "❓ 帮助", "callback_data": "cmd:/help"},
+            ],
+            [{"text": "⬅️ 返回", "callback_data": "menu:root"}],
+        ]
+    elif menu == "control":
+        keyboard = [
+            [
+                {"text": "▶️ 启动服务器 ID", "callback_data": "prompt:/startserver"},
+                {"text": "⏸️ 停止服务器 ID", "callback_data": "prompt:/stopserver"},
+            ],
+            [
+                {"text": "🔄 重启服务器 ID", "callback_data": "prompt:/reboot"},
+                {"text": "🔨 重建服务器 ID", "callback_data": "prompt:/rebuild"},
+            ],
+            [{"text": "🗑 删除服务器 ID confirm", "callback_data": "prompt:/delete"}],
+            [{"text": "⬅️ 返回", "callback_data": "menu:root"}],
+        ]
+    elif menu == "snapshot":
+        keyboard = [
+            [
+                {"text": "📦 快照列表", "callback_data": "cmd:/snapshots"},
+                {"text": "📸 创建快照 ID", "callback_data": "prompt:/createsnapshot"},
+            ],
+            [
+                {"text": "🧩 批量建机", "callback_data": "cmd:/createfromsnapshots"},
+                {"text": "🧩 单台建机 ID", "callback_data": "prompt:/createfromsnapshot"},
+            ],
+            [{"text": "⬅️ 返回", "callback_data": "menu:root"}],
+        ]
+    elif menu == "schedule":
+        keyboard = [
+            [
+                {"text": "✅ 开启定时", "callback_data": "cmd:/scheduleon"},
+                {"text": "⏸️ 关闭定时", "callback_data": "cmd:/scheduleoff"},
+            ],
+            [
+                {"text": "⏰ 定时状态", "callback_data": "cmd:/schedulestatus"},
+                {
+                    "text": "⚙️ 设置定时 示例",
+                    "callback_data": "prompt:/scheduleset",
+                },
+            ],
+            [{"text": "⬅️ 返回", "callback_data": "menu:root"}],
+        ]
+    else:
+        keyboard = [
+            [
+                {"text": "📊 查询", "callback_data": "menu:query"},
+                {"text": "🔧 控制", "callback_data": "menu:control"},
+            ],
+            [
+                {"text": "💾 快照", "callback_data": "menu:snapshot"},
+                {"text": "⏰ 定时", "callback_data": "menu:schedule"},
+            ],
+            [{"text": "🧾 代码块模式", "callback_data": "toggle:code"}],
+        ]
+
+    return {"inline_keyboard": keyboard}
+
+
+def _map_telegram_shortcut(text: str) -> str:
+    cmd = (text or "").strip()
+    if not cmd:
+        return ""
+    aliases = {
+        "📊 查询": "__menu_query__",
+        "🔧 控制": "__menu_control__",
+        "💾 快照": "__menu_snapshot__",
+        "⏰ 定时": "__menu_schedule__",
+        "⬅️ 返回": "__menu_root__",
+        "🖥 服务器列表": "/list",
+        "📄 列表(代码块)": "/listcode",
+        "📈 系统状态": "/status",
+        "📊 流量汇总": "/traffic",
+        "📊 流量详情 ID": "/traffic",
+        "📅 今日流量": "/today",
+        "📅 今日流量 ID": "/today",
+        "🕒 流量汇报": "/report",
+        "📋 汇报状态": "/reportstatus",
+        "♻️ 重置汇报": "/reportreset",
+        "📦 快照列表": "/snapshots",
+        "🔧 DNS测试 ID": "/dnstest",
+        "✅ DNS检查 ID": "/dnscheck",
+        "⏰ 定时状态": "/schedulestatus",
+        "✅ 开启定时": "/scheduleon",
+        "⏸️ 关闭定时": "/scheduleoff",
+        "🧩 批量建机": "/createfromsnapshots",
+        "🧩 单台建机 ID": "/createfromsnapshot",
+        "▶️ 启动服务器 ID": "/startserver",
+        "⏸️ 停止服务器 ID": "/stopserver",
+        "🔄 重启服务器 ID": "/reboot",
+        "🔨 重建服务器 ID": "/rebuild",
+        "🗑 删除服务器 ID confirm": "/delete",
+        "📸 创建快照 ID": "/createsnapshot",
+        "⚙️ 设置定时 示例": "/scheduleset delete=23:50,01:00 create=08:00,09:00",
+        "❓ 帮助": "/help",
+    }
+    for label, mapped in aliases.items():
+        if cmd == label:
+            return mapped
+    prefix_aliases = {
+        "📊 流量详情": "/traffic",
+        "📅 今日流量": "/today",
+        "🔧 DNS测试": "/dnstest",
+        "✅ DNS检查": "/dnscheck",
+        "🧩 单台建机": "/createfromsnapshot",
+        "▶️ 启动服务器": "/startserver",
+        "⏸️ 停止服务器": "/stopserver",
+        "🔄 重启服务器": "/reboot",
+        "🔨 重建服务器": "/rebuild",
+        "🗑 删除服务器": "/delete",
+        "📸 创建快照": "/createsnapshot",
+    }
+    for label, mapped in prefix_aliases.items():
+        prefix = f"{label} "
+        if cmd.startswith(prefix):
+            return mapped + cmd[len(label) :]
+    return cmd
+
+
 def _merge_hourly_snapshot(snapshot: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
     merged: Dict[str, Dict[str, Any]] = {}
 
@@ -571,12 +716,20 @@ def _get_today_traffic_bytes(client: "HetznerClient", server_id: int) -> Dict[st
     }
 
 
-def _send_telegram_message(bot_token: str, chat_id: str, text: str) -> bool:
+def _send_telegram_message(
+    bot_token: str,
+    chat_id: str,
+    text: str,
+    reply_markup: Optional[Dict[str, Any]] = None,
+) -> bool:
     if not bot_token or not chat_id:
         return False
     url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
     try:
-        resp = requests.post(url, json={"chat_id": chat_id, "text": text}, timeout=15)
+        payload: Dict[str, Any] = {"chat_id": chat_id, "text": text}
+        if reply_markup:
+            payload["reply_markup"] = reply_markup
+        resp = requests.post(url, json=payload, timeout=15)
         resp.raise_for_status()
         return True
     except Exception as e:
@@ -584,21 +737,43 @@ def _send_telegram_message(bot_token: str, chat_id: str, text: str) -> bool:
         return False
 
 
-def _send_telegram_markdown(bot_token: str, chat_id: str, text: str) -> bool:
+def _send_telegram_markdown(
+    bot_token: str,
+    chat_id: str,
+    text: str,
+    reply_markup: Optional[Dict[str, Any]] = None,
+) -> bool:
     if not bot_token or not chat_id:
         return False
     url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
     try:
-        resp = requests.post(
-            url,
-            json={"chat_id": chat_id, "text": text, "parse_mode": "Markdown"},
-            timeout=15,
-        )
+        payload: Dict[str, Any] = {"chat_id": chat_id, "text": text, "parse_mode": "Markdown"}
+        if reply_markup:
+            payload["reply_markup"] = reply_markup
+        resp = requests.post(url, json=payload, timeout=15)
         resp.raise_for_status()
         return True
     except Exception as e:
         print(f"[alert] telegram send failed: {e}")
         return False
+
+
+def _answer_telegram_callback(bot_token: str, callback_id: Optional[str]) -> None:
+    if not bot_token or not callback_id:
+        return
+    url = f"https://api.telegram.org/bot{bot_token}/answerCallbackQuery"
+    try:
+        requests.post(url, json={"callback_query_id": callback_id}, timeout=10)
+    except Exception as e:
+        print(f"[alert] telegram callback answer failed: {e}")
+
+
+def _maybe_wrap_codeblock(text: str) -> str:
+    if not BOT_STATE.get("code_mode"):
+        return text
+    if "```" in text:
+        return text
+    return f"```text\n{text}\n```"
 
 
 def _bytes_to_gb(value_bytes: float) -> Decimal:
@@ -1242,9 +1417,28 @@ def _snapshot_loop() -> None:
 
 
 def _handle_bot_command(text: str, config: Dict[str, Any], client: "HetznerClient") -> str:
-    cmd = (text or "").strip()
+    raw = (text or "").strip()
+    pending = BOT_STATE.pop("pending_cmd", None)
+    if pending and raw and not raw.startswith("/"):
+        text = f"{pending} {raw}"
+    cmd = _map_telegram_shortcut(text)
     if not cmd:
         return "⚠️ 未知指令"
+    if cmd == "__menu_root__":
+        BOT_STATE["menu_state"] = "root"
+        return "🏠 已切换到主菜单"
+    if cmd == "__menu_query__":
+        BOT_STATE["menu_state"] = "query"
+        return "📊 已切换到查询菜单"
+    if cmd == "__menu_control__":
+        BOT_STATE["menu_state"] = "control"
+        return "🔧 已切换到控制菜单"
+    if cmd == "__menu_snapshot__":
+        BOT_STATE["menu_state"] = "snapshot"
+        return "💾 已切换到快照菜单"
+    if cmd == "__menu_schedule__":
+        BOT_STATE["menu_state"] = "schedule"
+        return "⏰ 已切换到定时菜单"
     parts = cmd.split()
     command = parts[0].split("@")[0]
     args = parts[1:]
@@ -1298,6 +1492,17 @@ def _handle_bot_command(text: str, config: Dict[str, Any], client: "HetznerClien
                 "─────────────"
             )
         return "\n".join(lines)
+
+    if command == "/listcode":
+        servers = client.get_servers()
+        if not servers:
+            return "```text\n暂无服务器\n```"
+        lines = ["服务器列表"]
+        for s in servers:
+            ip = s.get("public_net", {}).get("ipv4", {}).get("ip", "N/A")
+            name = s.get("name") or s.get("id")
+            lines.append(f"- {name} (id: {s.get('id')}) ip: {ip}")
+        return "```text\n" + "\n".join(lines) + "\n```"
 
     if command in ("/status", "/ll"):
         servers = client.get_servers()
@@ -1718,6 +1923,51 @@ def _handle_bot_command(text: str, config: Dict[str, Any], client: "HetznerClien
     return "⚠️ 未知指令"
 
 
+def _handle_bot_callback(
+    data_value: str,
+    config: Dict[str, Any],
+    client: "HetznerClient",
+) -> tuple[str, str]:
+    if not data_value:
+        return "⚠️ 未知指令", BOT_STATE.get("menu_state") or "root"
+    if data_value.startswith("menu:"):
+        menu = data_value.split(":", 1)[1]
+        if menu == "root":
+            BOT_STATE["menu_state"] = "root"
+            return "🏠 主菜单", "root"
+        if menu in {"query", "control", "snapshot", "schedule"}:
+            BOT_STATE["menu_state"] = menu
+            label = {
+                "query": "📊 已切换到查询菜单",
+                "control": "🔧 已切换到控制菜单",
+                "snapshot": "💾 已切换到快照菜单",
+                "schedule": "⏰ 已切换到定时菜单",
+            }[menu]
+            return label, menu
+    if data_value == "toggle:code":
+        current = bool(BOT_STATE.get("code_mode"))
+        BOT_STATE["code_mode"] = not current
+        state = "开启" if BOT_STATE["code_mode"] else "关闭"
+        return f"🧾 代码块模式已{state}", BOT_STATE.get("menu_state") or "root"
+    if data_value.startswith("prompt:"):
+        pending = data_value.split(":", 1)[1]
+        BOT_STATE["pending_cmd"] = pending
+        if pending == "/scheduleset":
+            return (
+                "请输入定时参数，例如:\n"
+                "/scheduleset delete=23:50,01:00 create=08:00,09:00",
+                BOT_STATE.get("menu_state") or "root",
+            )
+        if pending == "/delete":
+            return "请输入ID和 confirm，例如: 123456 confirm", BOT_STATE.get("menu_state") or "root"
+        return "请输入ID，例如: 123456", BOT_STATE.get("menu_state") or "root"
+    if data_value.startswith("cmd:"):
+        cmd = data_value.split(":", 1)[1]
+        reply = _handle_bot_command(cmd, config, client)
+        return reply, BOT_STATE.get("menu_state") or "root"
+    return "⚠️ 未知指令", BOT_STATE.get("menu_state") or "root"
+
+
 def _telegram_bot_loop() -> None:
     while True:
         try:
@@ -1744,6 +1994,22 @@ def _telegram_bot_loop() -> None:
                 update_id = update.get("update_id")
                 if update_id is not None:
                     BOT_STATE["update_offset"] = update_id + 1
+                callback = update.get("callback_query") or {}
+                if callback:
+                    callback_id = callback.get("id")
+                    data_value = callback.get("data") or ""
+                    message = callback.get("message") or {}
+                    chat_id_cb = str(message.get("chat", {}).get("id", "")).strip()
+                    if chat_id_cb and chat_id_cb == chat_id:
+                        reply, menu_state = _handle_bot_callback(data_value, config, client)
+                        _answer_telegram_callback(bot_token, callback_id)
+                        _send_telegram_markdown(
+                            bot_token,
+                            chat_id,
+                            _maybe_wrap_codeblock(reply),
+                            reply_markup=_telegram_inline_keyboard(menu_state),
+                        )
+                    continue
                 message = update.get("message") or {}
                 if not message:
                     continue
@@ -1760,7 +2026,13 @@ def _telegram_bot_loop() -> None:
                     BOT_STATE["last_message_text"] = text
                 client = HetznerClient(config["hetzner"]["api_token"])
                 reply = _handle_bot_command(text, config, client)
-                _send_telegram_markdown(bot_token, chat_id, reply)
+                menu_state = BOT_STATE.get("menu_state") or "root"
+                _send_telegram_markdown(
+                    bot_token,
+                    chat_id,
+                    _maybe_wrap_codeblock(reply),
+                    reply_markup=_telegram_inline_keyboard(menu_state),
+                )
         except Exception as e:
             print(f"[alert] telegram bot error: {e}")
         time.sleep(3)

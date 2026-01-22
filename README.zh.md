@@ -150,23 +150,16 @@ curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/sc
 - Web 登录：`/opt/hetzner-web/web_config.json`
 - Automation：`/opt/hetzner-web/automation/config.yaml`
 
-建议修改完后都执行一次重启。
-
 ---
 
-## 常见问题
+## 排错图（新手必备）
 
-1) 访问不了网页？
-- 检查端口 1227 是否放行。
-- 确认容器在运行：`docker ps`。
+![排错流程](docs/troubleshooting-flow.svg)
 
-2) Telegram 不工作？
-- 确保 `bot_token` 和 `chat_id` 正确。
-- 修改后记得重启：`sudo systemctl restart hetzner-monitor.service`。
-
-3) 配置改了不生效？
-- Web 需要 `docker compose up -d --build`。
-- Automation 需要 `systemctl restart`。
+一键自检：
+- `docker ps`
+- `sudo systemctl status hetzner-monitor.service`
+- `sudo journalctl -u hetzner-monitor.service -n 50 --no-pager`
 
 ---
 

@@ -1,42 +1,66 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="520" viewBox="0 0 1200 520">
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="620" viewBox="0 0 1400 620">
   <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#f8fafc" />
+      <stop offset="100%" stop-color="#eef2ff" />
+    </linearGradient>
+    <linearGradient id="card" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="100%" stop-color="#f9fafb" />
+    </linearGradient>
     <style>
-      .title { font: 700 28px Arial, sans-serif; fill: #111827; }
-      .box { fill: #f9fafb; stroke: #111827; stroke-width: 2; rx: 16; ry: 16; }
-      .text { font: 600 18px Arial, sans-serif; fill: #111827; }
-      .sub { font: 400 16px Arial, sans-serif; fill: #374151; }
-      .arrow { stroke: #111827; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+      .title { font: 800 30px Arial, sans-serif; fill: #0f172a; }
+      .subtitle { font: 600 18px Arial, sans-serif; fill: #334155; }
+      .card { fill: url(#card); stroke: #0f172a; stroke-width: 2; rx: 18; ry: 18; }
+      .step { font: 800 20px Arial, sans-serif; fill: #0f172a; }
+      .text { font: 500 16px Arial, sans-serif; fill: #334155; }
+      .badge { font: 800 16px Arial, sans-serif; fill: #ffffff; }
+      .arrow { stroke: #0f172a; stroke-width: 3; fill: none; marker-end: url(#arrow); }
     </style>
     <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
-      <path d="M0,0 L12,6 L0,12 Z" fill="#111827" />
+      <path d="M0,0 L12,6 L0,12 Z" fill="#0f172a" />
     </marker>
   </defs>
 
-  <rect x="0" y="0" width="1200" height="520" fill="#ffffff" />
-  <text x="40" y="60" class="title">Hetzner-Web 二合一安装流程</text>
+  <rect x="0" y="0" width="1400" height="620" fill="url(#bg)" />
 
-  <rect x="40" y="110" width="260" height="120" class="box" />
-  <text x="70" y="150" class="text">1. 运行脚本</text>
-  <text x="70" y="180" class="sub">install-all.sh</text>
+  <text x="50" y="70" class="title">Hetzner-Web 二合一安装流程</text>
+  <text x="50" y="100" class="subtitle">一条命令安装 Web + automation + Telegram</text>
 
-  <rect x="350" y="110" width="260" height="120" class="box" />
-  <text x="380" y="150" class="text">2. 自动安装</text>
-  <text x="380" y="180" class="sub">拉仓库 + 起服务</text>
+  <rect x="50" y="140" width="300" height="150" class="card" />
+  <rect x="70" y="160" width="36" height="36" rx="8" ry="8" fill="#2563eb" />
+  <text x="80" y="186" class="badge">1</text>
+  <text x="120" y="185" class="step">运行脚本</text>
+  <text x="70" y="220" class="text">install-all.sh</text>
+  <text x="70" y="245" class="text">curl | sudo bash</text>
 
-  <rect x="660" y="110" width="260" height="120" class="box" />
-  <text x="690" y="150" class="text">3. 填写配置</text>
-  <text x="690" y="180" class="sub">config.yaml</text>
+  <rect x="380" y="140" width="300" height="150" class="card" />
+  <rect x="400" y="160" width="36" height="36" rx="8" ry="8" fill="#16a34a" />
+  <text x="410" y="186" class="badge">2</text>
+  <text x="450" y="185" class="step">自动安装</text>
+  <text x="400" y="220" class="text">拉仓库</text>
+  <text x="400" y="245" class="text">起服务</text>
 
-  <rect x="970" y="110" width="190" height="120" class="box" />
-  <text x="995" y="150" class="text">4. 重启</text>
-  <text x="995" y="180" class="sub">compose + systemd</text>
+  <rect x="710" y="140" width="300" height="150" class="card" />
+  <rect x="730" y="160" width="36" height="36" rx="8" ry="8" fill="#f59e0b" />
+  <text x="740" y="186" class="badge">3</text>
+  <text x="780" y="185" class="step">填写配置</text>
+  <text x="730" y="220" class="text">config.yaml</text>
+  <text x="730" y="245" class="text">automation/config.yaml</text>
 
-  <path d="M300 170 L350 170" class="arrow" />
-  <path d="M610 170 L660 170" class="arrow" />
-  <path d="M920 170 L970 170" class="arrow" />
+  <rect x="1040" y="140" width="300" height="150" class="card" />
+  <rect x="1060" y="160" width="36" height="36" rx="8" ry="8" fill="#ef4444" />
+  <text x="1070" y="186" class="badge">4</text>
+  <text x="1110" y="185" class="step">重启生效</text>
+  <text x="1060" y="220" class="text">docker compose</text>
+  <text x="1060" y="245" class="text">systemctl restart</text>
 
-  <rect x="40" y="280" width="1120" height="180" class="box" />
-  <text x="70" y="330" class="text">访问面板</text>
-  <text x="70" y="360" class="sub">http://你的服务器IP:1227</text>
-  <text x="70" y="400" class="sub">Telegram 通知：在 automation/config.yaml 填 bot_token 和 chat_id</text>
+  <path d="M350 215 L380 215" class="arrow" />
+  <path d="M680 215 L710 215" class="arrow" />
+  <path d="M1010 215 L1040 215" class="arrow" />
+
+  <rect x="50" y="340" width="1290" height="220" class="card" />
+  <text x="80" y="390" class="step">访问面板</text>
+  <text x="80" y="425" class="text">http://你的服务器IP:1227</text>
+  <text x="80" y="470" class="text">Telegram 通知：在 automation/config.yaml 填 bot_token + chat_id</text>
 </svg>

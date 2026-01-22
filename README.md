@@ -152,19 +152,14 @@ curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/sc
 
 ---
 
-## Common issues
+## Troubleshooting (visual guide)
 
-1) Dashboard not accessible
-- Check port 1227 is open
-- Confirm containers are running: `docker ps`
+![Troubleshooting Flow](docs/troubleshooting-flow.svg)
 
-2) Telegram not working
-- Verify `bot_token` and `chat_id`
-- Restart automation after edits
-
-3) Config changes not applied
-- Web: `docker compose up -d --build`
-- Automation: `systemctl restart hetzner-monitor.service`
+Quick checks:
+- `docker ps`
+- `sudo systemctl status hetzner-monitor.service`
+- `sudo journalctl -u hetzner-monitor.service -n 50 --no-pager`
 
 ---
 

@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="640" viewBox="0 0 1400 640">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#fff7ed" />
+      <stop offset="100%" stop-color="#f0f9ff" />
+    </linearGradient>
+    <style>
+      .title { font: 800 30px Arial, sans-serif; fill: #0f172a; }
+      .card { fill: #ffffff; stroke: #0f172a; stroke-width: 2; rx: 18; ry: 18; }
+      .label { font: 800 18px Arial, sans-serif; fill: #0f172a; }
+      .text { font: 500 16px Arial, sans-serif; fill: #334155; }
+      .arrow { stroke: #0f172a; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+    </style>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#0f172a" />
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="1400" height="640" fill="url(#bg)" />
+  <text x="50" y="70" class="title">常见问题排查流程</text>
+
+  <rect x="50" y="120" width="420" height="140" class="card" />
+  <text x="80" y="165" class="label">打不开面板</text>
+  <text x="80" y="200" class="text">1) 1227 端口放行</text>
+  <text x="80" y="225" class="text">2) docker ps 确认容器</text>
+
+  <rect x="510" y="120" width="420" height="140" class="card" />
+  <text x="540" y="165" class="label">Telegram 无消息</text>
+  <text x="540" y="200" class="text">1) bot_token/chat_id 正确</text>
+  <text x="540" y="225" class="text">2) 重启 systemd 服务</text>
+
+  <rect x="970" y="120" width="380" height="140" class="card" />
+  <text x="1000" y="165" class="label">配置不生效</text>
+  <text x="1000" y="200" class="text">Web: compose up -d --build</text>
+  <text x="1000" y="225" class="text">Automation: systemctl restart</text>
+
+  <path d="M470 190 L510 190" class="arrow" />
+  <path d="M930 190 L970 190" class="arrow" />
+
+  <rect x="50" y="320" width="1300" height="260" class="card" />
+  <text x="80" y="365" class="label">一键自检（可复制粘贴）</text>
+  <text x="80" y="410" class="text">docker ps</text>
+  <text x="80" y="440" class="text">sudo systemctl status hetzner-monitor.service</text>
+  <text x="80" y="470" class="text">sudo journalctl -u hetzner-monitor.service -n 50 --no-pager</text>
+</svg>

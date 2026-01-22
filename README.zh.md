@@ -28,6 +28,24 @@
 
 ---
 
+## 目录
+
+- [快速开始](#快速开始)
+- [界面截图](#界面截图)
+- [亮点功能](#亮点功能)
+- [安装方式](#安装方式)
+- [环境要求](#环境要求)
+- [配置设置](#配置设置)
+- [Telegram 配置](#telegram-配置)
+- [配置文件位置](#配置文件位置)
+- [排错指南](#排错指南)
+- [项目结构](#项目结构)
+- [功能一览](#功能一览)
+- [安全说明](#安全说明)
+- [品牌色卡](#品牌色卡)
+
+---
+
 ## ![Start](docs/icon-start.svg) 快速开始
 
 第一次使用直接选二合一脚本，一次性装好 Web + automation + Telegram 支持。
@@ -46,6 +64,12 @@ curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/sc
 
 ![Web 控制台](docs/web.png)
 ![Telegram 机器人](docs/telegram.png)
+
+---
+
+## ![List](docs/icon-list.svg) 亮点功能
+
+![Feature Cards](docs/feature-cards.svg)
 
 ---
 

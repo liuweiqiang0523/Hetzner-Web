@@ -28,6 +28,24 @@ A lightweight Hetzner traffic dashboard + automation monitor. Includes a web UI,
 
 ---
 
+## Table of Contents
+
+- [Quick Start](#quick-start)
+- [Screenshots](#screenshots)
+- [Highlights](#highlights)
+- [Install Options](#install-options)
+- [Prerequisites](#prerequisites)
+- [Config Setup](#config-setup)
+- [Telegram Setup](#telegram-setup)
+- [Config File Locations](#config-file-locations)
+- [Troubleshooting](#troubleshooting)
+- [Project Layout](#project-layout)
+- [Features](#features)
+- [Security Notes](#security-notes)
+- [Brand](#brand)
+
+---
+
 ## ![Start](docs/icon-start.svg) Quick Start
 
 If this is your first time, use the all-in-one script to install Web + automation + Telegram support in one go.
@@ -46,6 +64,12 @@ Then continue with **Config Setup** below.
 
 ![Web Dashboard](docs/web.png)
 ![Telegram Bot](docs/telegram.png)
+
+---
+
+## ![List](docs/icon-list.svg) Highlights
+
+![Feature Cards](docs/feature-cards.svg)
 
 ---
 

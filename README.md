@@ -96,6 +96,13 @@ Pick **one** method only — do not run both.
 curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/scripts/install-docker.sh | bash
 ```
 
+What the one-line script does (for beginners):
+1. Creates the install directory (default `/opt/hetzner-web`).
+2. Clones the repo into that directory.
+3. Generates/copies default config files (you still need to fill in tokens/credentials).
+4. Starts the Docker Compose service.
+5. Opens in browser at `http://<server-ip>:1227`.
+
 Optional env vars:
 - `INSTALL_DIR`: install directory (default `/opt/hetzner-web`)
 - `BRANCH`: git branch (default `main`)

@@ -95,6 +95,13 @@ docker compose up -d --build
 curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/scripts/install-docker.sh | bash
 ```
 
+一键脚本做了什么（给新手看）：
+1. 创建安装目录（默认 `/opt/hetzner-web`）。
+2. 拉取仓库代码到该目录。
+3. 生成/拷贝默认配置文件（需要你再填写 token/账号）。
+4. 启动 Docker Compose 服务。
+5. 完成后用浏览器访问 `http://<server-ip>:1227`。
+
 可选环境变量：
 - `INSTALL_DIR`：安装目录（默认 `/opt/hetzner-web`）
 - `BRANCH`：分支（默认 `main`）

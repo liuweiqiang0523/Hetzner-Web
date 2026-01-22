@@ -44,7 +44,7 @@ Then continue with **Config Setup** below.
 ## ![Camera](docs/icon-camera.svg) Screenshots
 
 ![Web Dashboard](docs/web.png)
-![Telegram Bot](docs/telegram.png)
+![Telegram Bot](docs/telegram2.png)
 
 ---
 

@@ -44,7 +44,7 @@ curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/sc
 ## ![Camera](docs/icon-camera.svg) 界面截图
 
 ![Web 控制台](docs/web.png)
-![Telegram 机器人](docs/telegram.png)
+![Telegram 机器人](docs/telegram2.png)
 
 ---
 

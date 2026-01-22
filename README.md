@@ -1,5 +1,3 @@
-# Hetzner Web
-
 ![Hetzner-Web](docs/brand-logo.svg)
 
 [English](README.md) | [中文](README.zh.md)

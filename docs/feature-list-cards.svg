@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="520" viewBox="0 0 1400 520">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#f5f3ff" />
+      <stop offset="100%" stop-color="#ede9fe" />
+    </linearGradient>
+    <style>
+      .card { fill: #ffffff; stroke: #3b0764; stroke-width: 2; rx: 18; ry: 18; }
+      .title { font: 800 18px "Arial Rounded MT Bold", "Trebuchet MS", Arial, sans-serif; fill: #3b0764; }
+      .text { font: 500 14px "Arial Rounded MT Bold", "Trebuchet MS", Arial, sans-serif; fill: #6b21a8; }
+      .icon { stroke: #7c3aed; stroke-width: 2.5; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1400" height="520" fill="url(#bg)" />
+
+  <rect x="40" y="60" width="320" height="180" class="card" />
+  <circle cx="90" cy="110" r="22" fill="#ede9fe" />
+  <path class="icon" d="M80 110h20M90 100v20" />
+  <text x="60" y="170" class="title">Traffic Analytics</text>
+  <text x="60" y="200" class="text">Daily & hourly tables</text>
+
+  <rect x="390" y="60" width="320" height="180" class="card" />
+  <circle cx="440" cy="110" r="22" fill="#ede9fe" />
+  <path class="icon" d="M430 110h20" />
+  <text x="410" y="170" class="title">Rebuild Actions</text>
+  <text x="410" y="200" class="text">One-click rebuild</text>
+
+  <rect x="740" y="60" width="320" height="180" class="card" />
+  <circle cx="790" cy="110" r="22" fill="#ede9fe" />
+  <path class="icon" d="M780 110h20M780 104h20" />
+  <text x="760" y="170" class="title">DNS Check & Sync</text>
+  <text x="760" y="200" class="text">Cloudflare integration</text>
+
+  <rect x="1090" y="60" width="270" height="180" class="card" />
+  <circle cx="1140" cy="110" r="22" fill="#ede9fe" />
+  <path class="icon" d="M1132 110l8 8 12-12" />
+  <text x="1110" y="170" class="title">Telegram Bot</text>
+  <text x="1110" y="200" class="text">Alerts + commands</text>
+
+  <rect x="40" y="280" width="320" height="180" class="card" />
+  <circle cx="90" cy="330" r="22" fill="#ede9fe" />
+  <path class="icon" d="M82 330h16M90 322v16" />
+  <text x="60" y="390" class="title">Snapshots</text>
+  <text x="60" y="420" class="text">Rebuild from snapshots</text>
+
+  <rect x="390" y="280" width="320" height="180" class="card" />
+  <circle cx="440" cy="330" r="22" fill="#ede9fe" />
+  <path class="icon" d="M430 330h20M435 324h10" />
+  <text x="410" y="390" class="title">Schedulers</text>
+  <text x="410" y="420" class="text">Timed delete/create</text>
+
+  <rect x="740" y="280" width="320" height="180" class="card" />
+  <circle cx="790" cy="330" r="22" fill="#ede9fe" />
+  <path class="icon" d="M780 330h20M782 326l6 6 12-12" />
+  <text x="760" y="390" class="title">Status & Trends</text>
+  <text x="760" y="420" class="text">Per-server sparklines</text>
+
+  <rect x="1090" y="280" width="270" height="180" class="card" />
+  <circle cx="1140" cy="330" r="22" fill="#ede9fe" />
+  <path class="icon" d="M1132 328l8 8 12-12" />
+  <text x="1110" y="390" class="title">Basic Auth</text>
+  <text x="1110" y="420" class="text">Simple login protection</text>
+</svg>

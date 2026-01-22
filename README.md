@@ -31,6 +31,7 @@ A lightweight Hetzner traffic dashboard + automation monitor. Includes a web UI,
 - [Quick Start](#quick-start)
 - [Screenshots](#screenshots)
 - [Highlights](#highlights)
+- [Use Cases](#use-cases)
 - [Install Options](#install-options)
 - [Prerequisites](#prerequisites)
 - [Config Setup](#config-setup)
@@ -40,10 +41,10 @@ A lightweight Hetzner traffic dashboard + automation monitor. Includes a web UI,
 - [Project Layout](#project-layout)
 - [Features](#features)
 - [Security Notes](#security-notes)
-- [Brand](#brand)
 
 ---
 
+<a id="quick-start"></a>
 ## ![Start](docs/icon-start.svg) Quick Start
 
 If this is your first time, use the all-in-one script to install Web + automation + Telegram support in one go.
@@ -58,6 +59,7 @@ Then continue with **Config Setup** below.
 
 ---
 
+<a id="screenshots"></a>
 ## ![Camera](docs/icon-camera.svg) Screenshots
 
 ![Web Dashboard](docs/web.png)
@@ -65,12 +67,21 @@ Then continue with **Config Setup** below.
 
 ---
 
+<a id="highlights"></a>
 ## ![List](docs/icon-list.svg) Highlights
 
 ![Feature Cards](docs/feature-cards.svg)
 
 ---
 
+<a id="use-cases"></a>
+## ![List](docs/icon-list.svg) Use Cases
+
+![Use Cases](docs/use-cases.svg)
+
+---
+
+<a id="install-options"></a>
 ## ![Install](docs/icon-install.svg) Install Options
 
 - All-in-one (recommended): `scripts/install-all.sh`
@@ -85,6 +96,7 @@ curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/sc
 
 ---
 
+<a id="prerequisites"></a>
 ## ![Check](docs/icon-check.svg) Prerequisites
 
 Make sure these commands exist:
@@ -101,6 +113,7 @@ If any are missing, install them first (Ubuntu/Debian: `apt`).
 
 ---
 
+<a id="config-setup"></a>
 ## ![Config](docs/icon-config.svg) Config Setup
 
 **Web config**
@@ -123,6 +136,7 @@ Open: `http://<your-server-ip>:1227`
 
 ---
 
+<a id="telegram-setup"></a>
 ## ![Telegram](docs/icon-telegram.svg) Telegram Setup
 
 In `automation/config.yaml`:
@@ -142,6 +156,7 @@ sudo systemctl restart hetzner-monitor.service
 
 ---
 
+<a id="config-file-locations"></a>
 ## ![Map](docs/icon-map.svg) Config File Locations
 
 ![Config Files](docs/config-files.light.svg)
@@ -152,6 +167,7 @@ sudo systemctl restart hetzner-monitor.service
 
 ---
 
+<a id="troubleshooting"></a>
 ## ![Tools](docs/icon-tools.svg) Troubleshooting
 
 ![Troubleshooting Flow](docs/troubleshooting-flow.light.svg)
@@ -163,6 +179,7 @@ Quick checks:
 
 ---
 
+<a id="project-layout"></a>
 ## ![Layout](docs/icon-layout.svg) Project Layout
 
 - Web dashboard (this directory): FastAPI + Vue, Docker-first
@@ -173,26 +190,15 @@ More docs:
 
 ---
 
+<a id="features"></a>
 ## ![List](docs/icon-list.svg) Features
 
-- Real-time server traffic (outbound/inbound)
-- Daily/hourly breakdown tables + per-server bars
-- DNS check/sync + rebuild actions
-- Telegram bot for query + control commands
-- Snapshot rebuild + create from snapshot
-- Scheduler for timed delete/create
-- Trend sparkline per server
-- Basic Auth login
+![Feature List](docs/feature-list-cards.svg)
 
 ---
 
+<a id="security-notes"></a>
 ## ![Shield](docs/icon-shield.svg) Security Notes
 
 - `config.yaml` / `web_config.json` / `automation/config.yaml` are sensitive. Do not commit them.
 - Use HTTPS reverse proxy for public access.
-
----
-
-## Brand
-
-![Brand Palette](docs/brand-palette.svg)

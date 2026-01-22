@@ -14,11 +14,17 @@ hourly insights, highlights cap risk, and keeps rebuild/DNS actions close to the
 
 ## Navigation
 
-- Web dashboard quick install:
+- Web dashboard quick install (web-only):
   `curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/scripts/install-docker.sh | bash`
-- Automation monitor quick install:
+- Automation monitor quick install (automation-only):
   `curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/automation/install_hetzner_monitor.sh | sudo bash`
 - Automation docs: `automation/README.md`
+
+## Which install do I need?
+
+- Want the web dashboard, manual rebuilds, and charts: install **Web dashboard** only (Docker).
+- Want automated alerts/auto-rebuild in the background: install **automation** only (CLI/Systemd).
+- Want both web UI and automation: install **both** (they do not conflict).
 
 ## Screenshot
 

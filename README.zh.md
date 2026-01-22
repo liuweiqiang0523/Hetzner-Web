@@ -14,11 +14,17 @@ Hetzner Web 是面向 Hetzner Cloud 的流量可视化控制室。它把原始�
 
 ## 导航
 
-- Web 控制台快速安装：
+- Web 控制台快速安装（只装 Web 控制台）：
   `curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/scripts/install-docker.sh | bash`
-- 自动化监控快速安装：
+- 自动化监控快速安装（只装 automation 服务）：
   `curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/automation/install_hetzner_monitor.sh | sudo bash`
 - 自动化文档：`automation/README_CN.md`
+
+## 我该装哪一个？
+
+- 只想要网页仪表盘、手动重建、可视化统计：只装 **Web 控制台**（Docker）。
+- 只想要自动化告警/自动重建（后台服务）：只装 **automation**（CLI/Systemd）。
+- 既要网页又要自动化：**两个都装**（互不冲突）。
 
 ## 截图
 

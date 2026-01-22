@@ -19,6 +19,13 @@ sudo ./install.sh
 curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/automation/install_hetzner_monitor.sh | sudo bash
 ```
 
+一键脚本做了什么（给新手看）：
+1. 创建安装目录（默认 `/opt/hetzner-web`）。
+2. 拉取仓库代码到该目录。
+3. 准备 Python 运行环境并安装依赖。
+4. 生成/拷贝默认配置文件（需要你再填写 token/账号）。
+5. 安装并启动 `hetzner-monitor.service` 服务。
+
 默认安装目录：`/opt/hetzner-web`（可在脚本后传入路径覆盖）。
 
 ### 短链接安装（可选）

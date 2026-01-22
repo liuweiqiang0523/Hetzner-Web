@@ -19,6 +19,13 @@ sudo ./install.sh
 curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/automation/install_hetzner_monitor.sh | sudo bash
 ```
 
+What the one-line script does (for beginners):
+1. Creates the install directory (default `/opt/hetzner-web`).
+2. Clones the repo into that directory.
+3. Sets up the Python environment and installs dependencies.
+4. Generates/copies default config files (you still need to fill in tokens/credentials).
+5. Installs and starts the `hetzner-monitor.service`.
+
 Default install dir: `/opt/hetzner-web` (override by passing a path to the script).
 
 ### Short URL install (optional)

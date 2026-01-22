@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="520" viewBox="0 0 1200 520">
+  <defs>
+    <style>
+      .title { font: 700 28px Arial, sans-serif; fill: #111827; }
+      .box { fill: #f9fafb; stroke: #111827; stroke-width: 2; rx: 16; ry: 16; }
+      .text { font: 600 18px Arial, sans-serif; fill: #111827; }
+      .sub { font: 400 16px Arial, sans-serif; fill: #374151; }
+      .arrow { stroke: #111827; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+    </style>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#111827" />
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="1200" height="520" fill="#ffffff" />
+  <text x="40" y="60" class="title">Hetzner-Web 二合一安装流程</text>
+
+  <rect x="40" y="110" width="260" height="120" class="box" />
+  <text x="70" y="150" class="text">1. 运行脚本</text>
+  <text x="70" y="180" class="sub">install-all.sh</text>
+
+  <rect x="350" y="110" width="260" height="120" class="box" />
+  <text x="380" y="150" class="text">2. 自动安装</text>
+  <text x="380" y="180" class="sub">拉仓库 + 起服务</text>
+
+  <rect x="660" y="110" width="260" height="120" class="box" />
+  <text x="690" y="150" class="text">3. 填写配置</text>
+  <text x="690" y="180" class="sub">config.yaml</text>
+
+  <rect x="970" y="110" width="190" height="120" class="box" />
+  <text x="995" y="150" class="text">4. 重启</text>
+  <text x="995" y="180" class="sub">compose + systemd</text>
+
+  <path d="M300 170 L350 170" class="arrow" />
+  <path d="M610 170 L660 170" class="arrow" />
+  <path d="M920 170 L970 170" class="arrow" />
+
+  <rect x="40" y="280" width="1120" height="180" class="box" />
+  <text x="70" y="330" class="text">访问面板</text>
+  <text x="70" y="360" class="sub">http://你的服务器IP:1227</text>
+  <text x="70" y="400" class="sub">Telegram 通知：在 automation/config.yaml 填 bot_token 和 chat_id</text>
+</svg>

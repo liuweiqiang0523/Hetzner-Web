@@ -19,6 +19,8 @@ curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/sc
 
 安装完成后，继续看下面「**配置填写**」。
 
+![安装流程](docs/quickstart-flow.svg)
+
 ---
 
 ## 我该装哪一个？
@@ -141,6 +143,8 @@ curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/sc
 ---
 
 ## 配置文件在哪里？
+
+![配置文件速查](docs/config-files.svg)
 
 - Web：`/opt/hetzner-web/config.yaml`
 - Web 登录：`/opt/hetzner-web/web_config.json`

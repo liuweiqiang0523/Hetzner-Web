@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="520" viewBox="0 0 1200 520">
+  <defs>
+    <style>
+      .title { font: 700 28px Arial, sans-serif; fill: #111827; }
+      .box { fill: #f3f4f6; stroke: #111827; stroke-width: 2; rx: 16; ry: 16; }
+      .text { font: 600 18px Arial, sans-serif; fill: #111827; }
+      .sub { font: 400 16px Arial, sans-serif; fill: #374151; }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1200" height="520" fill="#ffffff" />
+  <text x="40" y="60" class="title">配置文件速查</text>
+
+  <rect x="40" y="110" width="520" height="150" class="box" />
+  <text x="70" y="150" class="text">Web 面板</text>
+  <text x="70" y="185" class="sub">/opt/hetzner-web/config.yaml</text>
+  <text x="70" y="215" class="sub">/opt/hetzner-web/web_config.json</text>
+
+  <rect x="640" y="110" width="520" height="150" class="box" />
+  <text x="670" y="150" class="text">Automation</text>
+  <text x="670" y="185" class="sub">/opt/hetzner-web/automation/config.yaml</text>
+
+  <rect x="40" y="300" width="1120" height="150" class="box" />
+  <text x="70" y="340" class="text">改完配置后</text>
+  <text x="70" y="375" class="sub">Web: docker compose up -d --build</text>
+  <text x="70" y="405" class="sub">Automation: systemctl restart hetzner-monitor.service</text>
+</svg>

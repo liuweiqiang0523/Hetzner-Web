@@ -127,13 +127,19 @@ def _filter_snapshot(
     snapshot: Dict[str, Any],
     include_ids: Optional[set],
     name_map: Optional[Dict[str, str]] = None,
+    include_names: Optional[set] = None,
 ) -> Dict[str, Any]:
-    if not include_ids:
+    if not include_ids and not include_names:
         return snapshot
     filtered: Dict[str, Any] = {}
     for sid, data in snapshot.items():
         sid_str = str(sid)
-        if sid_str not in include_ids:
+        name = data.get("name") if isinstance(data, dict) else None
+        if include_ids and sid_str in include_ids:
+            pass
+        elif include_names and name in include_names:
+            pass
+        else:
             continue
         if isinstance(data, dict):
             entry = dict(data)
@@ -271,10 +277,11 @@ def _compute_tracking_totals(
     }
 
 
-def _detect_last_rebuilds(hourly: Dict[str, Any]) -> Dict[str, str]:
+def _detect_last_rebuilds(hourly: Dict[str, Any], name_map: Optional[Dict[str, str]] = None) -> Dict[str, str]:
     keys = sorted(hourly.keys())
     last: Dict[str, str] = {}
     prev_out: Dict[str, float] = {}
+    name_to_id = {name: sid for sid, name in (name_map or {}).items()}
     for key in keys:
         snapshot = hourly.get(key, {})
         for sid, data in snapshot.items():
@@ -285,10 +292,12 @@ def _detect_last_rebuilds(hourly: Dict[str, Any]) -> Dict[str, str]:
                 current = float(out)
             except Exception:
                 continue
-            prev = prev_out.get(str(sid))
+            name = data.get("name") or (name_map.get(str(sid)) if name_map else None) or str(sid)
+            prev = prev_out.get(name)
             if prev is not None and current < prev:
-                last[str(sid)] = key
-            prev_out[str(sid)] = current
+                mapped_id = name_to_id.get(name)
+                last[str(mapped_id or name)] = key
+            prev_out[name] = current
     return last
 
 
@@ -1790,7 +1799,8 @@ def api_servers(request: Request) -> JSONResponse:
     web_cfg = _load_json(WEB_CONFIG_PATH)
     hourly = _merge_hourly_series(state.get("hourly", {}))
     tracking = _compute_tracking_totals(hourly, web_cfg.get("tracking_start"))
-    rebuilds = _detect_last_rebuilds(state.get("hourly", {}))
+    name_map = {str(s["id"]): s.get("name") or str(s["id"]) for s in servers}
+    rebuilds = _detect_last_rebuilds(state.get("hourly", {}), name_map)
     return JSONResponse(
         {
             "servers": rows,
@@ -1867,6 +1877,7 @@ def api_hourly(request: Request, date: Optional[str] = None) -> JSONResponse:
     config = _load_yaml(CONFIG_PATH)
     name_map = _active_server_name_map(config)
     include_ids = set(name_map.keys()) if name_map else None
+    include_names = set(name_map.values()) if name_map else None
     keys = sorted(hourly.keys())
     if date:
         try:
@@ -1882,8 +1893,8 @@ def api_hourly(request: Request, date: Optional[str] = None) -> JSONResponse:
             prev_key = prev_map.get(curr_key)
             prev_raw = hourly.get(prev_key, {}) if prev_key else {}
             curr_raw = hourly.get(curr_key, {})
-            prev = _filter_snapshot(prev_raw, include_ids, name_map)
-            curr = _filter_snapshot(curr_raw, include_ids, name_map)
+            prev = _filter_snapshot(prev_raw, include_ids, name_map, include_names)
+            curr = _filter_snapshot(curr_raw, include_ids, name_map, include_names)
             deltas = _delta_by_name(prev, curr)
             for name in deltas:
                 if name not in rows:
@@ -1902,8 +1913,8 @@ def api_hourly(request: Request, date: Optional[str] = None) -> JSONResponse:
         curr_key = keys[i]
         prev_raw = hourly.get(prev_key, {})
         curr_raw = hourly.get(curr_key, {})
-        prev = _filter_snapshot(prev_raw, include_ids, name_map)
-        curr = _filter_snapshot(curr_raw, include_ids, name_map)
+        prev = _filter_snapshot(prev_raw, include_ids, name_map, include_names)
+        curr = _filter_snapshot(curr_raw, include_ids, name_map, include_names)
         deltas = _delta_by_name(prev, curr)
         for name in deltas:
             if name not in rows:
@@ -1924,6 +1935,7 @@ def api_daily(request: Request) -> JSONResponse:
     config = _load_yaml(CONFIG_PATH)
     name_map = _active_server_name_map(config)
     include_ids = set(name_map.keys()) if name_map else None
+    include_names = set(name_map.values()) if name_map else None
     keys = sorted(hourly.keys())
     if len(keys) < 2:
         return JSONResponse({"days": [], "peak": "0.000", "total": "0.000", "servers": []})
@@ -1940,8 +1952,8 @@ def api_daily(request: Request) -> JSONResponse:
             continue
         prev_raw = hourly.get(prev_key, {})
         curr_raw = hourly.get(curr_key, {})
-        prev = _filter_snapshot(prev_raw, include_ids, name_map)
-        curr = _filter_snapshot(curr_raw, include_ids, name_map)
+        prev = _filter_snapshot(prev_raw, include_ids, name_map, include_names)
+        curr = _filter_snapshot(curr_raw, include_ids, name_map, include_names)
         deltas = _delta_by_name(prev, curr)
         for name, data in deltas.items():
             if data.get("has_out"):

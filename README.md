@@ -65,6 +65,8 @@ Quick links:
 
 ## Quick Start (Docker)
 
+Use this if you already have the repo and want a manual setup.
+
 ```bash
 cp config.example.yaml config.yaml
 cp web_config.example.json web_config.json
@@ -77,6 +79,9 @@ docker compose up -d --build
 Open: `http://<server-ip>:1227`
 
 ## One-line Install (Docker)
+
+Use this for a fresh install. It clones the repo and starts the service.
+Pick **one** method only — do not run both.
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/scripts/install-docker.sh | bash

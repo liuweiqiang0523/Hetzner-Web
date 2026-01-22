@@ -64,6 +64,8 @@ Hetzner Web 是面向 Hetzner Cloud 的流量可视化控制室。它把原始�
 
 ## 快速开始 (Docker)
 
+用途：手动安装（本地已有代码时使用）。
+
 ```bash
 cp config.example.yaml config.yaml
 cp web_config.example.json web_config.json
@@ -76,6 +78,9 @@ docker compose up -d --build
 打开：`http://<server-ip>:1227`
 
 ## 一键安装 (Docker)
+
+用途：全新安装（自动下载仓库并启动）。
+二选一即可，**不要重复安装**。
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/scripts/install-docker.sh | bash

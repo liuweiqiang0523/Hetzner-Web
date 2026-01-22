@@ -16,6 +16,7 @@
       .text { font: 500 16px "Arial Rounded MT Bold", "Trebuchet MS", Arial, sans-serif; fill: #6b21a8; }
       .badge { font: 800 16px "Arial Rounded MT Bold", "Trebuchet MS", Arial, sans-serif; fill: #ffffff; }
       .arrow { stroke: #7c3aed; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+      .icon { stroke: #ffffff; stroke-width: 2.4; fill: none; stroke-linecap: round; stroke-linejoin: round; }
     </style>
     <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
       <path d="M0,0 L12,6 L0,12 Z" fill="#7c3aed" />
@@ -29,29 +30,37 @@
   <text x="70" y="125" class="subtitle">One command, Web + automation + Telegram</text>
 
   <rect x="50" y="190" width="300" height="160" class="card" />
-  <circle cx="90" cy="225" r="16" fill="#7c3aed" />
+  <circle cx="90" cy="225" r="18" fill="#7c3aed" />
   <text x="84" y="230" class="badge">1</text>
+  <circle cx="270" cy="225" r="18" fill="#7c3aed" />
+  <path d="M264 218 L278 225 L264 232 Z" fill="#ffffff" />
   <text x="120" y="230" class="step">Run script</text>
   <text x="80" y="265" class="text">install-all.sh</text>
   <text x="80" y="290" class="text">curl | sudo bash</text>
 
   <rect x="380" y="190" width="300" height="160" class="card" />
-  <circle cx="420" cy="225" r="16" fill="#a855f7" />
+  <circle cx="420" cy="225" r="18" fill="#a855f7" />
   <text x="414" y="230" class="badge">2</text>
+  <circle cx="600" cy="225" r="18" fill="#a855f7" />
+  <path class="icon" d="M593 225 L607 225 M600 218 L600 232" />
   <text x="450" y="230" class="step">Auto setup</text>
   <text x="410" y="265" class="text">clone repo</text>
   <text x="410" y="290" class="text">start services</text>
 
   <rect x="710" y="190" width="300" height="160" class="card" />
-  <circle cx="750" cy="225" r="16" fill="#c026d3" />
+  <circle cx="750" cy="225" r="18" fill="#c026d3" />
   <text x="744" y="230" class="badge">3</text>
+  <circle cx="930" cy="225" r="18" fill="#c026d3" />
+  <path class="icon" d="M923 232 L937 218 M923 218 L937 232" />
   <text x="780" y="230" class="step">Fill configs</text>
   <text x="740" y="265" class="text">config.yaml</text>
   <text x="740" y="290" class="text">automation/config.yaml</text>
 
   <rect x="1040" y="190" width="300" height="160" class="card" />
-  <circle cx="1080" cy="225" r="16" fill="#9333ea" />
+  <circle cx="1080" cy="225" r="18" fill="#9333ea" />
   <text x="1074" y="230" class="badge">4</text>
+  <circle cx="1260" cy="225" r="18" fill="#9333ea" />
+  <path class="icon" d="M1254 225 A6 6 0 1 1 1266 225 M1266 225 L1266 218" />
   <text x="1110" y="230" class="step">Restart</text>
   <text x="1070" y="265" class="text">docker compose</text>
   <text x="1070" y="290" class="text">systemctl restart</text>

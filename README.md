@@ -9,7 +9,7 @@ A lightweight Hetzner traffic dashboard + automation monitor. Includes a web UI,
 
 ---
 
-## 30-second quick start (all-in-one)
+## 1) 30-second quick start (all-in-one)
 
 If this is your first time, use the **all-in-one script** to install Web + automation + Telegram support in one go.
 
@@ -19,11 +19,7 @@ curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/sc
 
 Then continue with **Config Setup** below.
 
-Light theme:
-![Quick Start Flow Light](docs/quickstart-flow.light.svg)
-
-Dark theme:
-![Quick Start Flow Dark](docs/quickstart-flow.dark.svg)
+![Quick Start Flow](docs/quickstart-flow.light.svg)
 
 ---
 
@@ -34,7 +30,7 @@ Dark theme:
 
 ---
 
-## Which install do I need?
+## 2) Which install do I need?
 
 - New users: use the **all-in-one script** (Web + automation + Telegram).
 - Web-only dashboard: use the **Web install script**.
@@ -42,7 +38,7 @@ Dark theme:
 
 ---
 
-## Check prerequisites (beginner-friendly)
+## 3) Check prerequisites (beginner-friendly)
 
 Make sure these commands exist:
 
@@ -58,15 +54,15 @@ If any are missing, install them first (Ubuntu/Debian: `apt`).
 
 ---
 
-## All-in-one install (recommended)
+## 4) All-in-one install (recommended)
 
-### 1) Run the installer
+### Step 1: Run the installer
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/scripts/install-all.sh | sudo bash
 ```
 
-### 2) Fill in configs (important)
+### Step 2: Fill in configs (important)
 
 **Web config:**
 - `config.yaml`: set `hetzner.api_token`
@@ -77,7 +73,7 @@ curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/sc
 
 > Note: if `HETZNER_API_TOKEN` was not provided, the script uses example config. You must edit it manually.
 
-### 3) Restart to apply
+### Step 3: Restart to apply
 
 ```bash
 cd /opt/hetzner-web
@@ -86,13 +82,13 @@ docker compose up -d --build
 sudo systemctl restart hetzner-monitor.service
 ```
 
-### 4) Open the dashboard
+### Step 4: Open the dashboard
 
 Open: `http://<your-server-ip>:1227`
 
 ---
 
-## Telegram setup (most used)
+## 5) Telegram setup (most used)
 
 In `automation/config.yaml`:
 
@@ -111,7 +107,7 @@ sudo systemctl restart hetzner-monitor.service
 
 ---
 
-## Web-only install (optional)
+## 6) Web-only install (optional)
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/scripts/install-docker.sh | bash
@@ -125,7 +121,7 @@ docker compose up -d --build
 
 ---
 
-## Automation-only install (optional)
+## 7) Automation-only install (optional)
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/automation/install_hetzner_monitor.sh | sudo bash
@@ -139,7 +135,7 @@ sudo systemctl restart hetzner-monitor.service
 
 ---
 
-## Will this affect an existing deployment?
+## 8) Will this affect an existing deployment?
 
 By default, **no**.
 
@@ -153,13 +149,9 @@ curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/sc
 
 ---
 
-## Config file locations
+## 9) Config file locations
 
-Light theme:
-![Config Files Light](docs/config-files.light.svg)
-
-Dark theme:
-![Config Files Dark](docs/config-files.dark.svg)
+![Config Files](docs/config-files.light.svg)
 
 - Web: `/opt/hetzner-web/config.yaml`
 - Web login: `/opt/hetzner-web/web_config.json`
@@ -167,13 +159,9 @@ Dark theme:
 
 ---
 
-## Troubleshooting (visual guide)
+## 10) Troubleshooting (visual guide)
 
-Light theme:
-![Troubleshooting Flow Light](docs/troubleshooting-flow.light.svg)
-
-Dark theme:
-![Troubleshooting Flow Dark](docs/troubleshooting-flow.dark.svg)
+![Troubleshooting Flow](docs/troubleshooting-flow.light.svg)
 
 Quick checks:
 - `docker ps`
@@ -182,7 +170,7 @@ Quick checks:
 
 ---
 
-## Project layout
+## 11) Project layout
 
 - Web dashboard (this directory): FastAPI + Vue, Docker-first
 - Automation monitor: `automation/` (CLI/systemd service)
@@ -192,7 +180,7 @@ More docs:
 
 ---
 
-## Features
+## 12) Features
 
 - Real-time server traffic (outbound/inbound)
 - Daily/hourly breakdown tables + per-server bars
@@ -205,7 +193,7 @@ More docs:
 
 ---
 
-## Security notes
+## 13) Security notes
 
 - `config.yaml` / `web_config.json` / `automation/config.yaml` are sensitive. Do not commit them.
 - Use HTTPS reverse proxy for public access.

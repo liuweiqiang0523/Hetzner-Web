@@ -9,7 +9,7 @@
 
 ---
 
-## 30 秒上手（二合一推荐）
+## 1) 30 秒上手（二合一推荐）
 
 如果你是第一次用，**直接用二合一脚本**，一次性装好 Web + automation + Telegram 支持。
 
@@ -19,11 +19,7 @@ curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/sc
 
 安装完成后，继续看下面「**配置填写**」。
 
-浅色版：
-![安装流程浅色](docs/quickstart-flow.light.svg)
-
-深色版：
-![安装流程深色](docs/quickstart-flow.dark.svg)
+![安装流程](docs/quickstart-flow.light.svg)
 
 ---
 
@@ -34,7 +30,7 @@ curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/sc
 
 ---
 
-## 我该装哪一个？
+## 2) 我该装哪一个？
 
 - 新手/省事：用 **二合一脚本**（Web + automation + Telegram）。
 - 只要网页仪表盘：用 **Web 一键脚本**。
@@ -42,7 +38,7 @@ curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/sc
 
 ---
 
-## 先确认环境（新手必看）
+## 3) 先确认环境（新手必看）
 
 脚本不会帮你装系统依赖，请先确认这些命令可用：
 
@@ -58,15 +54,15 @@ systemctl --version
 
 ---
 
-## 二合一一键安装（推荐）
+## 4) 二合一一键安装（推荐）
 
-### 1) 运行脚本
+### 第一步：运行脚本
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/scripts/install-all.sh | sudo bash
 ```
 
-### 2) 填写配置（非常重要）
+### 第二步：填写配置（非常重要）
 
 **Web 配置：**
 - `config.yaml`：填写 `hetzner.api_token`。
@@ -77,7 +73,7 @@ curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/sc
 
 > 注意：如果脚本没有检测到 `HETZNER_API_TOKEN`，会先使用示例配置。你一定要手动填写。
 
-### 3) 重启让配置生效
+### 第三步：重启让配置生效
 
 ```bash
 cd /opt/hetzner-web
@@ -86,13 +82,13 @@ docker compose up -d --build
 sudo systemctl restart hetzner-monitor.service
 ```
 
-### 4) 打开网页
+### 第四步：打开网页
 
 浏览器访问：`http://<你的服务器IP>:1227`
 
 ---
 
-## Telegram 配置（最常用）
+## 5) Telegram 配置（最常用）
 
 在 `automation/config.yaml` 中填：
 
@@ -111,7 +107,7 @@ sudo systemctl restart hetzner-monitor.service
 
 ---
 
-## 只装 Web（可选）
+## 6) 只装 Web（可选）
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/scripts/install-docker.sh | bash
@@ -125,7 +121,7 @@ docker compose up -d --build
 
 ---
 
-## 只装 Automation（可选）
+## 7) 只装 Automation（可选）
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/automation/install_hetzner_monitor.sh | sudo bash
@@ -139,7 +135,7 @@ sudo systemctl restart hetzner-monitor.service
 
 ---
 
-## 已有部署会被改动吗？
+## 8) 已有部署会被改动吗？
 
 默认 **不会**。
 
@@ -153,13 +149,9 @@ curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/sc
 
 ---
 
-## 配置文件在哪里？
+## 9) 配置文件在哪里？
 
-浅色版：
-![配置文件浅色](docs/config-files.light.svg)
-
-深色版：
-![配置文件深色](docs/config-files.dark.svg)
+![配置文件速查](docs/config-files.light.svg)
 
 - Web：`/opt/hetzner-web/config.yaml`
 - Web 登录：`/opt/hetzner-web/web_config.json`
@@ -167,13 +159,9 @@ curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/sc
 
 ---
 
-## 排错图（新手必备）
+## 10) 排错图（新手必备）
 
-浅色版：
-![排错流程浅色](docs/troubleshooting-flow.light.svg)
-
-深色版：
-![排错流程深色](docs/troubleshooting-flow.dark.svg)
+![排错流程](docs/troubleshooting-flow.light.svg)
 
 一键自检：
 - `docker ps`
@@ -182,7 +170,7 @@ curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/sc
 
 ---
 
-## 项目结构
+## 11) 项目结构
 
 - Web 控制台（本目录）：FastAPI + Vue，Docker 优先。
 - 自动化监控：`automation/`（CLI/Systemd 服务）。
@@ -193,7 +181,7 @@ curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/sc
 
 ---
 
-## 功能一览
+## 12) 功能一览
 
 - 实时服务器流量（出站/入站）
 - 日/小时拆分表 + 每日单机柱状图
@@ -206,7 +194,7 @@ curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/sc
 
 ---
 
-## 安全说明
+## 13) 安全说明
 
 - `config.yaml` / `web_config.json` / `automation/config.yaml` 都是敏感文件，请不要提交到 Git。
 - 建议通过 HTTPS 反向代理访问。

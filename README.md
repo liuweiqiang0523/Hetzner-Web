@@ -7,25 +7,6 @@
 
 A lightweight Hetzner traffic dashboard + automation monitor. Includes a web UI, Telegram alerts/commands, auto rebuilds, and DNS checks.
 
----
-
-<table>
-  <tr>
-    <td width="60%" valign="top">
-      <strong>Start here</strong><br />
-      One command installs Web + automation + Telegram support.<br /><br />
-      <code>curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/scripts/install-all.sh | sudo bash</code>
-    </td>
-    <td width="40%" valign="top">
-      <strong>Next step</strong><br />
-      Fill configs and restart services.<br /><br />
-      <code>config.yaml</code> · <code>web_config.json</code> · <code>automation/config.yaml</code>
-    </td>
-  </tr>
-</table>
-
----
-
 ## Table of Contents
 
 - [Quick Start](#quick-start)
@@ -40,6 +21,7 @@ A lightweight Hetzner traffic dashboard + automation monitor. Includes a web UI,
 - [Troubleshooting](#troubleshooting)
 - [Project Layout](#project-layout)
 - [Features](#features)
+- [FAQ](#faq)
 - [Security Notes](#security-notes)
 
 ---
@@ -78,6 +60,8 @@ Then continue with **Config Setup** below.
 ## ![List](docs/icon-list.svg) Use Cases
 
 ![Use Cases](docs/use-cases.svg)
+
+Typical scenarios: traffic cap alerts, nightly cleanup/rebuild, and Telegram-based ops on the go.
 
 ---
 
@@ -194,6 +178,20 @@ More docs:
 ## ![List](docs/icon-list.svg) Features
 
 ![Feature List](docs/feature-list-cards.svg)
+
+---
+
+<a id="faq"></a>
+## ![List](docs/icon-list.svg) FAQ
+
+Q: The dashboard doesn't open. What should I check first?  
+A: Make sure port `1227` is open and confirm containers are running with `docker ps`.
+
+Q: Telegram messages are not arriving.  
+A: Verify `bot_token` and `chat_id` in `automation/config.yaml`, then restart the service.
+
+Q: I edited configs but nothing changed.  
+A: Rebuild web with `docker compose up -d --build` and restart automation with `systemctl restart`.
 
 ---
 

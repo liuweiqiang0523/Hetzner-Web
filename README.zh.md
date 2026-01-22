@@ -7,25 +7,6 @@
 
 一个轻量的 Hetzner 流量控制台 + 自动化监控工具。支持可视化仪表盘、Telegram 通知/命令、自动重建、DNS 检查。
 
----
-
-<table>
-  <tr>
-    <td width="60%" valign="top">
-      <strong>从这里开始</strong><br />
-      一条命令装好 Web + automation + Telegram。<br /><br />
-      <code>curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/scripts/install-all.sh | sudo bash</code>
-    </td>
-    <td width="40%" valign="top">
-      <strong>下一步</strong><br />
-      填写配置并重启服务。<br /><br />
-      <code>config.yaml</code> · <code>web_config.json</code> · <code>automation/config.yaml</code>
-    </td>
-  </tr>
-</table>
-
----
-
 ## 目录
 
 - [快速开始](#快速开始)
@@ -40,6 +21,7 @@
 - [排错指南](#排错指南)
 - [项目结构](#项目结构)
 - [功能一览](#功能一览)
+- [常见问题](#常见问题)
 - [安全说明](#安全说明)
 
 ---
@@ -78,6 +60,8 @@ curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/sc
 ## ![List](docs/icon-list.svg) 使用场景
 
 ![Use Cases](docs/use-cases.svg)
+
+常见场景：流量封顶告警、夜间删建机、Telegram 随时操作。
 
 ---
 
@@ -194,6 +178,20 @@ sudo systemctl restart hetzner-monitor.service
 ## ![List](docs/icon-list.svg) 功能一览
 
 ![Feature List](docs/feature-list-cards.svg)
+
+---
+
+<a id="常见问题"></a>
+## ![List](docs/icon-list.svg) 常见问题
+
+Q：打开不了网页？  
+A：先确认 1227 端口放行，再用 `docker ps` 看容器是否在运行。
+
+Q：Telegram 没有消息？  
+A：确认 `automation/config.yaml` 里的 `bot_token`/`chat_id`，然后重启服务。
+
+Q：改了配置没生效？  
+A：Web 运行 `docker compose up -d --build`，automation 运行 `systemctl restart`。
 
 ---
 

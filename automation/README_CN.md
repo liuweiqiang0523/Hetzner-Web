@@ -22,6 +22,18 @@
 curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/automation/install_hetzner_monitor.sh | sudo bash
 ```
 
+一键脚本做了什么（给新手看）：
+1. 创建安装目录（默认 `/opt/hetzner-web`）。
+2. 拉取仓库代码到该目录。
+3. 准备 Python 运行环境并安装依赖。
+4. 生成/拷贝默认配置文件（需要你再填写 token/账号）。
+5. 安装并启动 `hetzner-monitor.service` 服务。
+
+新手分步（要填什么）：
+1. 执行一键命令（这一步不需要填写任何东西）。
+2. 编辑 `/opt/hetzner-web/automation/config.yaml`：填写 `hetzner.api_token`（必填），需要 Telegram/Cloudflare/快照映射再填写对应项。
+3. 重启服务：`sudo systemctl restart hetzner-monitor.service`。
+
 默认安装目录：`/opt/hetzner-web`（可在脚本后传入路径覆盖）。
 
 短链接（可选）：

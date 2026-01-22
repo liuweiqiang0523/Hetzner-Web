@@ -3214,6 +3214,10 @@
             const todayIn = todayRow ? parseFloat(todayRow.inbound_tb || 0) : 0;
             const yesterdayOut = yesterdayRow ? parseFloat(yesterdayRow.outbound_tb || 0) : 0;
             const yesterdayIn = yesterdayRow ? parseFloat(yesterdayRow.inbound_tb || 0) : 0;
+            if (todayRow) {
+              this.todayOutboundTb = todayOutDaily.toFixed(3);
+              this.todayInboundTb = todayIn.toFixed(3);
+            }
             this.yesterdayOutboundTb = yesterdayRow ? yesterdayOut.toFixed(3) : "—";
             this.yesterdayInboundTb = yesterdayRow ? yesterdayIn.toFixed(3) : "—";
             const todayOutDisplay = parseFloat(this.todayOutboundTb || "NaN");

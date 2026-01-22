@@ -228,10 +228,16 @@ def _delta_by_name(prev: Dict[str, Any], curr: Dict[str, Any]) -> Dict[str, Dict
         curr_in = data.get("inbound_bytes")
         out_delta = None
         in_delta = None
-        if prev_out is not None and curr_out is not None and float(curr_out) >= float(prev_out):
-            out_delta = _bytes_to_tb(float(curr_out) - float(prev_out))
-        if prev_in is not None and curr_in is not None and float(curr_in) >= float(prev_in):
-            in_delta = _bytes_to_tb(float(curr_in) - float(prev_in))
+        if prev_out is not None and curr_out is not None:
+            if float(curr_out) >= float(prev_out):
+                out_delta = _bytes_to_tb(float(curr_out) - float(prev_out))
+            else:
+                out_delta = _bytes_to_tb(float(curr_out))
+        if prev_in is not None and curr_in is not None:
+            if float(curr_in) >= float(prev_in):
+                in_delta = _bytes_to_tb(float(curr_in) - float(prev_in))
+            else:
+                in_delta = _bytes_to_tb(float(curr_in))
         entry = aggregates.setdefault(
             name, {"out": Decimal("0.000"), "in": Decimal("0.000"), "has_out": False, "has_in": False}
         )

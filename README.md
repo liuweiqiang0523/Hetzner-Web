@@ -103,6 +103,12 @@ What the one-line script does (for beginners):
 4. Starts the Docker Compose service.
 5. Opens in browser at `http://<server-ip>:1227`.
 
+Beginner step-by-step (what to fill):
+1. Run the one-line command (no input needed).
+2. Edit `config.yaml`: set `hetzner.api_token` (required); fill Telegram/Cloudflare if you use them.
+3. Edit `web_config.json`: set `username` and `password` (required).
+4. Restart from the install dir: `docker compose up -d --build`.
+
 Optional env vars:
 - `INSTALL_DIR`: install directory (default `/opt/hetzner-web`)
 - `BRANCH`: git branch (default `main`)

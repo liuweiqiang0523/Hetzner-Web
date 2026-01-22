@@ -102,6 +102,12 @@ curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/sc
 4. 启动 Docker Compose 服务。
 5. 完成后用浏览器访问 `http://<server-ip>:1227`。
 
+新手分步（要填什么）：
+1. 执行一键命令（这一步不需要填写任何东西）。
+2. 编辑 `config.yaml`：填写 `hetzner.api_token`（必填），如需 Telegram/Cloudflare 再填写对应项。
+3. 编辑 `web_config.json`：填写 `username` 和 `password`（必填）。
+4. 在安装目录执行 `docker compose up -d --build` 让配置生效。
+
 可选环境变量：
 - `INSTALL_DIR`：安装目录（默认 `/opt/hetzner-web`）
 - `BRANCH`：分支（默认 `main`）

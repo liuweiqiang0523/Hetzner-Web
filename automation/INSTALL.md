@@ -26,6 +26,11 @@ What the one-line script does (for beginners):
 4. Generates/copies default config files (you still need to fill in tokens/credentials).
 5. Installs and starts the `hetzner-monitor.service`.
 
+Beginner step-by-step (what to fill):
+1. Run the one-line command (no input needed).
+2. Edit `/opt/hetzner-web/automation/config.yaml`: set `hetzner.api_token` (required), then fill Telegram/Cloudflare/Snapshot map if used.
+3. Restart the service: `sudo systemctl restart hetzner-monitor.service`.
+
 Default install dir: `/opt/hetzner-web` (override by passing a path to the script).
 
 ### Short URL install (optional)

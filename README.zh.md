@@ -62,6 +62,15 @@ Hetzner Web 是面向 Hetzner Cloud 的流量可视化控制室。它把原始�
 - 后端：FastAPI + Python
 - 前端：Vue 3（CDN）+ 原生 JS/CSS
 
+## 安装前需要准备
+
+- 一台可联网的 Linux 服务器（有公网 IP）
+- Docker 与 Docker Compose
+- Hetzner Cloud API Token（必填，写入 `config.yaml`）
+- Web 登录账号密码（必填，写入 `web_config.json`）
+- 可选：Telegram Bot Token + Chat ID（需要通知/机器人）
+- 可选：Cloudflare API Token + Zone ID（需要 DNS 同步/检查）
+
 ## 快速开始 (Docker)
 
 用途：手动安装（本地已有代码时使用）。

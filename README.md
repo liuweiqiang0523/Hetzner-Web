@@ -63,6 +63,15 @@ Quick links:
 - Backend: FastAPI + Python
 - Frontend: Vue 3 (CDN) + vanilla JS/CSS
 
+## What You Need Before Installing
+
+- A Linux server with public network access
+- Docker and Docker Compose
+- Hetzner Cloud API token (required; set in `config.yaml`)
+- Web login credentials (required; set in `web_config.json`)
+- Optional: Telegram bot token + chat ID (for alerts/bot)
+- Optional: Cloudflare API token + zone ID (for DNS sync/check)
+
 ## Quick Start (Docker)
 
 Use this if you already have the repo and want a manual setup.

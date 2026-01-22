@@ -17,6 +17,7 @@
       .badge { font: 800 16px "Arial Rounded MT Bold", "Trebuchet MS", Arial, sans-serif; fill: #ffffff; }
       .arrow { stroke: #7c3aed; stroke-width: 3; fill: none; marker-end: url(#arrow); }
       .icon { stroke: #ffffff; stroke-width: 2.4; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+      .bubble { fill: #ede9fe; stroke: #c4b5fd; stroke-width: 1.5; }
     </style>
     <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
       <path d="M0,0 L12,6 L0,12 Z" fill="#7c3aed" />
@@ -25,6 +26,10 @@
 
   <rect x="0" y="0" width="1400" height="640" fill="url(#bg)" />
   <rect x="40" y="40" width="1320" height="120" fill="url(#glow)" rx="20" ry="20" />
+
+  <circle cx="1240" cy="70" r="26" class="bubble" />
+  <circle cx="1290" cy="110" r="18" class="bubble" />
+  <circle cx="1160" cy="90" r="14" class="bubble" />
 
   <text x="70" y="90" class="title">Hetzner-Web All-in-One Setup</text>
   <text x="70" y="125" class="subtitle">One command, Web + automation + Telegram</text>
@@ -73,4 +78,7 @@
   <text x="80" y="440" class="step">Open Dashboard</text>
   <text x="80" y="475" class="text">http://your-server-ip:1227</text>
   <text x="80" y="515" class="text">Telegram alerts: set bot_token + chat_id in automation/config.yaml</text>
+
+  <circle cx="1180" cy="480" r="28" class="bubble" />
+  <circle cx="1230" cy="520" r="18" class="bubble" />
 </svg>

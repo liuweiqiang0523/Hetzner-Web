@@ -11,10 +11,13 @@
       .text { font: 500 16px "Arial Rounded MT Bold", "Trebuchet MS", Arial, sans-serif; fill: #6b21a8; }
       .pill { font: 700 14px "Arial Rounded MT Bold", "Trebuchet MS", Arial, sans-serif; fill: #ffffff; }
       .icon { stroke: #ffffff; stroke-width: 2.4; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+      .dot { fill: #c4b5fd; }
     </style>
   </defs>
 
   <rect x="0" y="0" width="1400" height="560" fill="url(#bg)" />
+  <circle cx="1280" cy="70" r="16" class="dot" />
+  <circle cx="1320" cy="110" r="10" class="dot" />
   <text x="50" y="70" class="title">Config Files Cheat Sheet</text>
 
   <rect x="50" y="120" width="610" height="170" class="card" />

@@ -12,6 +12,7 @@
       .arrow { stroke: #7c3aed; stroke-width: 3; fill: none; marker-end: url(#arrow); }
       .tag { font: 700 13px "Arial Rounded MT Bold", "Trebuchet MS", Arial, sans-serif; fill: #ffffff; }
       .icon { stroke: #ffffff; stroke-width: 2.4; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+      .dot { fill: #c4b5fd; }
     </style>
     <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
       <path d="M0,0 L12,6 L0,12 Z" fill="#7c3aed" />
@@ -19,6 +20,8 @@
   </defs>
 
   <rect x="0" y="0" width="1400" height="640" fill="url(#bg)" />
+  <circle cx="90" cy="90" r="12" class="dot" />
+  <circle cx="130" cy="70" r="8" class="dot" />
   <text x="50" y="70" class="title">Troubleshooting Flow</text>
 
   <rect x="50" y="120" width="420" height="150" class="card" />

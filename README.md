@@ -11,6 +11,23 @@ A lightweight Hetzner traffic dashboard + automation monitor. Includes a web UI,
 
 ---
 
+<table>
+  <tr>
+    <td width="60%" valign="top">
+      <strong>Start here</strong><br />
+      One command installs Web + automation + Telegram support.<br /><br />
+      <code>curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/scripts/install-all.sh | sudo bash</code>
+    </td>
+    <td width="40%" valign="top">
+      <strong>Next step</strong><br />
+      Fill configs and restart services.<br /><br />
+      <code>config.yaml</code> · <code>web_config.json</code> · <code>automation/config.yaml</code>
+    </td>
+  </tr>
+</table>
+
+---
+
 ## ![Start](docs/icon-start.svg) Quick Start
 
 If this is your first time, use the all-in-one script to install Web + automation + Telegram support in one go.

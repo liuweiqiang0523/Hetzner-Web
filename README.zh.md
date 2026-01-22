@@ -11,6 +11,23 @@
 
 ---
 
+<table>
+  <tr>
+    <td width="60%" valign="top">
+      <strong>从这里开始</strong><br />
+      一条命令装好 Web + automation + Telegram。<br /><br />
+      <code>curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/scripts/install-all.sh | sudo bash</code>
+    </td>
+    <td width="40%" valign="top">
+      <strong>下一步</strong><br />
+      填写配置并重启服务。<br /><br />
+      <code>config.yaml</code> · <code>web_config.json</code> · <code>automation/config.yaml</code>
+    </td>
+  </tr>
+</table>
+
+---
+
 ## ![Start](docs/icon-start.svg) 快速开始
 
 第一次使用直接选二合一脚本，一次性装好 Web + automation + Telegram 支持。

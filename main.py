@@ -1328,7 +1328,7 @@ def _handle_bot_command(text: str, config: Dict[str, Any], client: "HetznerClien
             lines.append(f"{label} · {name} (`{s.get('id')}`)")
         telegram_cfg = config.get("telegram", {})
         levels = _parse_alert_levels(telegram_cfg.get("notify_levels"))
-        notify_text = f\"{', '.join(str(x) for x in levels)}%\" if levels else \"-\"
+        notify_text = f"{', '.join(str(x) for x in levels)}%" if levels else "-"
         return (
             "📊 *系统状态概览*\n\n"
             f"🖥 服务器总数: {total} 台\n"

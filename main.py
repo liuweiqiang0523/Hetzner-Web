@@ -153,14 +153,17 @@ def _telegram_inline_keyboard(menu: str) -> Dict[str, Any]:
     else:
         keyboard = [
             [
-                {"text": "📊 查询", "callback_data": "menu:query"},
-                {"text": "🔧 控制", "callback_data": "menu:control"},
+                {"text": "📊 查询类", "callback_data": "menu:query"},
+                {"text": "🔧 控制类", "callback_data": "menu:control"},
             ],
             [
-                {"text": "💾 快照", "callback_data": "menu:snapshot"},
-                {"text": "⏰ 定时", "callback_data": "menu:schedule"},
+                {"text": "💾 快照管理", "callback_data": "menu:snapshot"},
+                {"text": "⏰ 定时任务", "callback_data": "menu:schedule"},
             ],
-            [{"text": "🧾 代码块模式", "callback_data": "toggle:code"}],
+            [
+                {"text": "🧾 代码块模式", "callback_data": "toggle:code"},
+                {"text": "📖 命令大全", "callback_data": "cmd:/help"},
+            ],
         ]
 
     return {"inline_keyboard": keyboard}
@@ -171,11 +174,13 @@ def _map_telegram_shortcut(text: str) -> str:
     if not cmd:
         return ""
     aliases = {
-        "📊 查询": "__menu_query__",
-        "🔧 控制": "__menu_control__",
-        "💾 快照": "__menu_snapshot__",
-        "⏰ 定时": "__menu_schedule__",
+        "📊 查询类": "__menu_query__",
+        "🔧 控制类": "__menu_control__",
+        "💾 快照管理": "__menu_snapshot__",
+        "⏰ 定时任务": "__menu_schedule__",
         "⬅️ 返回": "__menu_root__",
+        "🧾 代码块模式": "__toggle_code__",
+        "📖 命令大全": "/help",
         "🖥 服务器列表": "/list",
         "📄 列表(代码块)": "/listcode",
         "📈 系统状态": "/status",
@@ -776,6 +781,19 @@ def _maybe_wrap_codeblock(text: str) -> str:
     return f"```text\n{text}\n```"
 
 
+def _telegram_reply_keyboard_root() -> Dict[str, Any]:
+    return {
+        "keyboard": [
+            ["📊 查询类", "🔧 控制类"],
+            ["💾 快照管理", "⏰ 定时任务"],
+            ["🧾 代码块模式", "📖 命令大全"],
+        ],
+        "is_persistent": True,
+        "resize_keyboard": True,
+        "one_time_keyboard": False,
+    }
+
+
 def _bytes_to_gb(value_bytes: float) -> Decimal:
     return (Decimal(value_bytes) / (Decimal(1024) ** 3)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
@@ -876,21 +894,17 @@ def _build_daily_report(config: Dict[str, Any], client: "HetznerClient") -> str:
         if outgoing is None or ingoing is None:
             lines.append(f"━━━━━━━━━━\n🖥️ `{s.get('name') or s['id']}`\n❌ 获取失败")
             continue
-        usage = _get_today_traffic_bytes(client, s["id"])
         percent = None
         if limit_bytes:
             percent = (float(outgoing) / limit_bytes) * 100
         outbound_tb = _bytes_to_tb(float(outgoing))
         inbound_tb = _bytes_to_tb(float(ingoing))
-        today_up_tb = _bytes_to_tb_precise(float(usage["out_bytes"]), places="0.000")
-        today_down_tb = _bytes_to_tb_precise(float(usage["in_bytes"]), places="0.000")
         percent_text = f" ({percent:.2f}%)" if percent is not None else ""
         lines.append(
             "━━━━━━━━━━\n"
             f"🖥️ `{detail.get('name') or s.get('name') or s['id']}`\n"
             f"📤 总上传: `{outbound_tb} TB`{percent_text}\n"
-            f"📥 总下载: `{inbound_tb} TB`\n"
-            f"📈 **今日新增**: ⬆️ `{today_up_tb} TB` | ⬇️ `{today_down_tb} TB`"
+            f"📥 总下载: `{inbound_tb} TB`"
         )
     return "\n".join(lines)
 
@@ -1439,6 +1453,11 @@ def _handle_bot_command(text: str, config: Dict[str, Any], client: "HetznerClien
     if cmd == "__menu_schedule__":
         BOT_STATE["menu_state"] = "schedule"
         return "⏰ 已切换到定时菜单"
+    if cmd == "__toggle_code__":
+        current = bool(BOT_STATE.get("code_mode"))
+        BOT_STATE["code_mode"] = not current
+        state = "开启" if BOT_STATE["code_mode"] else "关闭"
+        return f"🧾 代码块模式已{state}"
     parts = cmd.split()
     command = parts[0].split("@")[0]
     args = parts[1:]
@@ -2009,6 +2028,14 @@ def _telegram_bot_loop() -> None:
                             _maybe_wrap_codeblock(reply),
                             reply_markup=_telegram_inline_keyboard(menu_state),
                         )
+                        if not BOT_STATE.get("reply_keyboard_enabled"):
+                            _send_telegram_message(
+                                bot_token,
+                                chat_id,
+                                " ",
+                                reply_markup=_telegram_reply_keyboard_root(),
+                            )
+                            BOT_STATE["reply_keyboard_enabled"] = True
                     continue
                 message = update.get("message") or {}
                 if not message:
@@ -2033,6 +2060,14 @@ def _telegram_bot_loop() -> None:
                     _maybe_wrap_codeblock(reply),
                     reply_markup=_telegram_inline_keyboard(menu_state),
                 )
+                if not BOT_STATE.get("reply_keyboard_enabled"):
+                    _send_telegram_message(
+                        bot_token,
+                        chat_id,
+                        " ",
+                        reply_markup=_telegram_reply_keyboard_root(),
+                    )
+                    BOT_STATE["reply_keyboard_enabled"] = True
         except Exception as e:
             print(f"[alert] telegram bot error: {e}")
         time.sleep(3)

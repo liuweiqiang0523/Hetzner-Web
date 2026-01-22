@@ -14,6 +14,8 @@ hourly insights, highlights cap risk, and keeps rebuild/DNS actions close to the
 
 ## Navigation
 
+- All-in-one quick install (web + automation + Telegram):
+  `curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/scripts/install-all.sh | sudo bash`
 - Web dashboard quick install (web-only):
   `curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/scripts/install-docker.sh | bash`
 - Automation monitor quick install (automation-only):
@@ -22,6 +24,7 @@ hourly insights, highlights cap risk, and keeps rebuild/DNS actions close to the
 
 ## Which install do I need?
 
+- New users: use the **all-in-one script** (web + automation + Telegram).
 - Want the web dashboard, manual rebuilds, and charts: install **Web dashboard** only (Docker).
 - Want automated alerts/auto-rebuild in the background: install **automation** only (CLI/Systemd).
 - Want both web UI and automation: install **both** (they do not conflict).
@@ -89,8 +92,7 @@ Open: `http://<server-ip>:1227`
 
 ## One-line Install (Docker)
 
-Use this for a fresh install. It clones the repo and starts the service.
-Pick **one** method only — do not run both.
+Use this for a fresh web-only install. If you want both web + automation, use the all-in-one section below.
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/scripts/install-docker.sh | bash
@@ -129,6 +131,24 @@ The original Hetzner automation monitor is now bundled in this repo under `autom
 - One-line install (from this repo): `automation/install_hetzner_monitor.sh`
 
 This keeps the web dashboard and the automation service in one repository while remaining independently runnable.
+
+## All-in-one Install (Recommended for beginners)
+
+Use this to install web + automation + Telegram support in one go.
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/scripts/install-all.sh | sudo bash
+```
+
+Default behavior:
+- If the install dir does not exist: clone, generate configs, start web, install automation.
+- If the install dir exists: the script exits to avoid touching your current deployment.
+
+If you really want to update an existing dir (not recommended for beginners):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/scripts/install-all.sh | sudo ALLOW_UPDATE=1 bash
+```
 
 ## Reverse Proxy (Nginx example)
 

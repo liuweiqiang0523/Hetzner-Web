@@ -3,34 +3,181 @@
 [English](README.md) | [中文](README.zh.md)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Docker](https://img.shields.io/badge/Docker-ready-2496ED)](#快速开始-docker)
+[![Docker](https://img.shields.io/badge/Docker-ready-2496ED)](#30-秒上手二合一推荐)
 
-一个轻量的 Hetzner 流量控制台，提供日/小时视图、重建操作、DNS 检查和清晰的仪表盘。
+一个轻量的 Hetzner 流量控制台 + 自动化监控工具。支持可视化仪表盘、Telegram 通知/命令、自动重建、DNS 检查。
 
-## 关于
+---
 
-Hetzner Web 是面向 Hetzner Cloud 的流量可视化控制室。它把原始流量数据整理成日/小时洞察，
-突出流量触顶风险，并把重建/DNS 操作放在图表旁边，方便快速处理。
+## 30 秒上手（二合一推荐）
 
-## 导航
+如果你是第一次用，**直接用二合一脚本**，一次性装好 Web + automation + Telegram 支持。
 
-- Web 控制台快速安装（只装 Web 控制台）：
-  `curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/scripts/install-docker.sh | bash`
-- 自动化监控快速安装（只装 automation 服务）：
-  `curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/automation/install_hetzner_monitor.sh | sudo bash`
-- 自动化文档：`automation/README_CN.md`
+```bash
+curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/scripts/install-all.sh | sudo bash
+```
+
+安装完成后，继续看下面「**配置填写**」。
+
+---
 
 ## 我该装哪一个？
 
-- 只想要网页仪表盘、手动重建、可视化统计：只装 **Web 控制台**（Docker）。
-- 只想要自动化告警/自动重建（后台服务）：只装 **automation**（CLI/Systemd）。
-- 既要网页又要自动化：**两个都装**（互不冲突）。
+- 新手/省事：用 **二合一脚本**（Web + automation + Telegram）。
+- 只要网页仪表盘：用 **Web 一键脚本**。
+- 只要自动化监控：用 **automation 一键脚本**。
 
-## 截图
+---
 
-![Dashboard](docs/screenshot.png)
+## 先确认环境（新手必看）
 
-## 功能
+脚本不会帮你装系统依赖，请先确认这些命令可用：
+
+```bash
+git --version
+python3 --version
+docker --version
+docker compose version
+systemctl --version
+```
+
+如果缺少，请先安装对应组件（Ubuntu/Debian 通常可用 apt 安装）。
+
+---
+
+## 二合一一键安装（推荐）
+
+### 1) 运行脚本
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/scripts/install-all.sh | sudo bash
+```
+
+### 2) 填写配置（非常重要）
+
+**Web 配置：**
+- `config.yaml`：填写 `hetzner.api_token`。
+- `web_config.json`：填写 `username` / `password`。
+
+**Automation 配置：**
+- `automation/config.yaml`：填写 Hetzner/Telegram/Cloudflare 等（如需通知）。
+
+> 注意：如果脚本没有检测到 `HETZNER_API_TOKEN`，会先使用示例配置。你一定要手动填写。
+
+### 3) 重启让配置生效
+
+```bash
+cd /opt/hetzner-web
+
+docker compose up -d --build
+sudo systemctl restart hetzner-monitor.service
+```
+
+### 4) 打开网页
+
+浏览器访问：`http://<你的服务器IP>:1227`
+
+---
+
+## Telegram 配置（最常用）
+
+在 `automation/config.yaml` 中填：
+
+```yaml
+telegram:
+  enabled: true
+  bot_token: "你的 Bot Token"
+  chat_id: "你的 Chat ID"
+```
+
+填完重启 automation：
+
+```bash
+sudo systemctl restart hetzner-monitor.service
+```
+
+---
+
+## 只装 Web（可选）
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/scripts/install-docker.sh | bash
+```
+
+装完后填写：`config.yaml` + `web_config.json`，然后执行：
+
+```bash
+docker compose up -d --build
+```
+
+---
+
+## 只装 Automation（可选）
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/automation/install_hetzner_monitor.sh | sudo bash
+```
+
+装完后填写：`automation/config.yaml`，然后执行：
+
+```bash
+sudo systemctl restart hetzner-monitor.service
+```
+
+---
+
+## 已有部署会被改动吗？
+
+默认 **不会**。
+
+二合一脚本遇到已存在的目录会直接退出，避免覆盖你现有的部署。
+
+如果你明确要更新已有目录（不推荐新手）：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/scripts/install-all.sh | sudo ALLOW_UPDATE=1 bash
+```
+
+---
+
+## 配置文件在哪里？
+
+- Web：`/opt/hetzner-web/config.yaml`
+- Web 登录：`/opt/hetzner-web/web_config.json`
+- Automation：`/opt/hetzner-web/automation/config.yaml`
+
+建议修改完后都执行一次重启。
+
+---
+
+## 常见问题
+
+1) 访问不了网页？
+- 检查端口 1227 是否放行。
+- 确认容器在运行：`docker ps`。
+
+2) Telegram 不工作？
+- 确保 `bot_token` 和 `chat_id` 正确。
+- 修改后记得重启：`sudo systemctl restart hetzner-monitor.service`。
+
+3) 配置改了不生效？
+- Web 需要 `docker compose up -d --build`。
+- Automation 需要 `systemctl restart`。
+
+---
+
+## 项目结构
+
+- Web 控制台（本目录）：FastAPI + Vue，Docker 优先。
+- 自动化监控：`automation/`（CLI/Systemd 服务）。
+
+相关文档：
+- Web 说明：`README.zh.md`（当前文件）
+- Automation 说明：`automation/README_CN.md`
+
+---
+
+## 功能一览
 
 - 实时服务器流量（出站/入站）
 - 日/小时拆分表 + 每日单机柱状图
@@ -41,149 +188,23 @@ Hetzner Web 是面向 Hetzner Cloud 的流量可视化控制室。它把原始�
 - 每台机器的趋势火花线
 - Basic Auth 登录
 
-## 项目结构
+---
 
-- Web 控制台（本目录）：FastAPI + Vue，Docker 优先。
-- 自动化监控：`automation/`（CLI/systemd 服务）。
+## 安全说明
 
-快捷入口：
-- Web 文档：`README.zh.md`（当前）
-- 自动化文档：`automation/README_CN.md`
-- 自动化安装脚本：`automation/install_hetzner_monitor.sh`
+- `config.yaml` / `web_config.json` / `automation/config.yaml` 都是敏感文件，请不要提交到 Git。
+- 建议通过 HTTPS 反向代理访问。
 
-## 工作方式
+---
 
-- 刷新时从 Hetzner Cloud API 拉取服务器与流量数据。
-- 将原始数值汇总成日/小时序列，并缓存到 `report_state.json`。
-- 前端为静态 Vue 面板，通过 `/api/*` 接口渲染图表。
-
-## 技术栈
-
-- 后端：FastAPI + Python
-- 前端：Vue 3（CDN）+ 原生 JS/CSS
-
-## 安装前需要准备
-
-- 一台可联网的 Linux 服务器（有公网 IP）
-- Docker 与 Docker Compose
-- Hetzner Cloud API Token（必填，写入 `config.yaml`）
-- Web 登录账号密码（必填，写入 `web_config.json`）
-- 可选：Telegram Bot Token + Chat ID（需要通知/机器人）
-- 可选：Cloudflare API Token + Zone ID（需要 DNS 同步/检查）
-
-## 快速开始 (Docker)
-
-用途：手动安装（本地已有代码时使用）。
-
-```bash
-cp config.example.yaml config.yaml
-cp web_config.example.json web_config.json
-cp report_state.example.json report_state.json
-# 编辑 config.yaml + web_config.json
-
-docker compose up -d --build
-```
-
-打开：`http://<server-ip>:1227`
-
-## 一键安装 (Docker)
-
-用途：全新安装（自动下载仓库并启动）。
-二选一即可，**不要重复安装**。
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/scripts/install-docker.sh | bash
-```
-
-一键脚本做了什么（给新手看）：
-1. 创建安装目录（默认 `/opt/hetzner-web`）。
-2. 拉取仓库代码到该目录。
-3. 生成/拷贝默认配置文件（需要你再填写 token/账号）。
-4. 启动 Docker Compose 服务。
-5. 完成后用浏览器访问 `http://<server-ip>:1227`。
-
-新手分步（要填什么）：
-1. 执行一键命令（这一步不需要填写任何东西）。
-2. 编辑 `config.yaml`：填写 `hetzner.api_token`（必填），如需 Telegram/Cloudflare 再填写对应项。
-3. 编辑 `web_config.json`：填写 `username` 和 `password`（必填）。
-4. 在安装目录执行 `docker compose up -d --build` 让配置生效。
-
-可选环境变量：
-- `INSTALL_DIR`：安装目录（默认 `/opt/hetzner-web`）
-- `BRANCH`：分支（默认 `main`）
-- `REPO_URL`：仓库地址
-
-示例：
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/scripts/install-docker.sh | INSTALL_DIR=/srv/hetzner-web bash
-```
-
-## 自动化监控 (CLI/Systemd)
-
-原 Hetzner 自动化监控项目已合并到本仓库的 `automation/` 目录。
-
-- 入口：`automation/main.py`
-- 安装文档：`automation/INSTALL.md`（English）、`automation/INSTALL_CN.md`（中文）
-- 一键安装脚本：`automation/install_hetzner_monitor.sh`
-
-这样可以在同一个仓库中维护 Web 控制台与自动化服务，互不影响。
-
-## 反向代理 (Nginx 示例)
-
-```nginx
-server {
-  listen 443 ssl;
-  server_name hz.example.com;
-
-  ssl_certificate /path/to/fullchain.pem;
-  ssl_certificate_key /path/to/privkey.pem;
-
-  location / {
-    proxy_pass http://127.0.0.1:1227;
-    proxy_set_header Host $host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Proto $scheme;
-  }
-}
-```
-
-## 配置
-
-### `config.yaml`
-- `hetzner.api_token`: Hetzner Cloud API token
-- `traffic.limit_gb`: 流量上限 (GB)
-- `traffic.check_interval`: 轮询频率（分钟）
-- `traffic.exceed_action`: 超限动作（`rebuild` 或留空）
-- `scheduler.enabled`: 是否开启定时任务
-- `scheduler.delete_time`: 删除时间（HH:MM，逗号分隔）
-- `scheduler.create_time`: 创建时间（HH:MM，逗号分隔）
-- `telegram.bot_token`: Telegram Bot Token
-- `telegram.chat_id`: Telegram Chat ID
-- `telegram.notify_levels`: 告警阈值（百分比）
-- `telegram.daily_report_time`: 每日战报时间（HH:MM）
-- `cloudflare.api_token`: Cloudflare API Token
-- `cloudflare.zone_id`: Cloudflare Zone ID
-- `cloudflare.sync_on_start`: 启动时同步 DNS
-- `cloudflare.record_map`: server_id 或 server_name -> DNS 记录
-- `rebuild.snapshot_id_map`: server_id -> snapshot_id
-- `rebuild.fallback_template`: 重建时回退模板
-
-### `web_config.json`
-- `username` / `password`: Basic Auth 凭据
-- `tracking_start`: 可选，如 `2026-01-01 00:00`
-
-## Telegram 命令
+## Telegram 常用命令（附录）
 
 查询类：
 - `/list`：服务器列表
 - `/status`：系统状态
-- `/traffic ID`：流量详情（不带 ID 显示全部）
-- `/today ID`：今日流量（不带 ID 显示全部）
+- `/traffic ID`：流量详情
+- `/today ID`：今日流量
 - `/report`：手动流量汇报
-- `/reportstatus`：上次汇报时间
-- `/reportreset`：重置汇报区间
 - `/dnstest ID`：测试 DNS 更新
 - `/dnscheck ID`：DNS 解析检查
 
@@ -194,38 +215,3 @@ server {
 - `/delete <ID> confirm`：删除服务器
 - `/rebuild <ID>`：重建服务器
 
-快照管理：
-- `/snapshots`：查看快照
-- `/createsnapshot <ID>`：创建快照
-- `/createfromsnapshot <SNAP_ID>`：按快照创建服务器
-- `/createfromsnapshots`：按映射快照批量创建
-
-定时任务：
-- `/scheduleon`：开启定时删机
-- `/scheduleoff`：关闭定时删机
-- `/schedulestatus`：查看定时状态
-- `/scheduleset delete=23:50,01:00 create=08:00,09:00`：设置定时
-
-DNS：
-- `/dnsync`：同步 Cloudflare DNS
-
-> `cloudflare.record_map` 支持对象格式：`{ record, zone_id, api_token }`，可为不同服务器配置不同 Zone。
-
-## 安全说明
-
-- `config.yaml` 和 `web_config.json` 为敏感文件（已加入 gitignore）。
-- 建议通过 HTTPS 反向代理访问。
-- 可结合 IP 白名单限制访问。
-
-## 备注
-
-- 运行时数据存放在 `report_state.json`（已加入 gitignore）。
-- `config.yaml` 和 `web_config.json` 已加入 gitignore，避免泄露。
-
-## 版本发布
-
-仓库统一版本说明见 `RELEASE_NOTES.md`，适用于 Web 控制台与自动化监控。
-
-## 许可证
-
-MIT

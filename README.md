@@ -20,7 +20,6 @@ A lightweight Hetzner traffic dashboard + automation monitor. Includes a web UI,
 - [Config File Locations](#config-file-locations)
 - [Troubleshooting](#troubleshooting)
 - [Project Layout](#project-layout)
-- [Features](#features-list)
 - [FAQ](#faq)
 - [Security Notes](#security-notes)
 
@@ -172,14 +171,6 @@ Quick checks:
 
 More docs:
 - Automation docs: `automation/README.md`
-
----
-
-<a id="features-list"></a>
-## ![List](docs/icon-list.svg) Features
-
-![Feature List](docs/feature-list-cards.svg)
-If the image does not render, open `docs/feature-list-cards.svg` directly.
 
 ---
 

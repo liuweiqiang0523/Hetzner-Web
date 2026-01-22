@@ -20,7 +20,6 @@
 - [配置文件位置](#配置文件位置)
 - [排错指南](#排错指南)
 - [项目结构](#项目结构)
-- [功能一览](#features-list)
 - [常见问题](#常见问题)
 - [安全说明](#安全说明)
 
@@ -172,14 +171,6 @@ sudo systemctl restart hetzner-monitor.service
 
 相关文档：
 - Automation 说明：`automation/README_CN.md`
-
----
-
-<a id="features-list"></a>
-## ![List](docs/icon-list.svg) 功能一览
-
-![Feature List](docs/feature-list-cards.svg)
-如果图片未显示，可直接打开 `docs/feature-list-cards.svg` 查看。
 
 ---
 

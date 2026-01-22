@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="640" viewBox="0 0 1400 640">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#1b1028" />
+      <stop offset="100%" stop-color="#2a1242" />
+    </linearGradient>
+    <style>
+      .title { font: 800 30px "Arial Rounded MT Bold", "Trebuchet MS", Arial, sans-serif; fill: #f5f3ff; }
+      .card { fill: #120b1d; stroke: #6d28d9; stroke-width: 2; rx: 18; ry: 18; }
+      .label { font: 800 18px "Arial Rounded MT Bold", "Trebuchet MS", Arial, sans-serif; fill: #f5f3ff; }
+      .text { font: 500 16px "Arial Rounded MT Bold", "Trebuchet MS", Arial, sans-serif; fill: #ddd6fe; }
+      .arrow { stroke: #c4b5fd; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+      .tag { font: 700 13px "Arial Rounded MT Bold", "Trebuchet MS", Arial, sans-serif; fill: #0b0612; }
+    </style>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#c4b5fd" />
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="1400" height="640" fill="url(#bg)" />
+  <text x="50" y="70" class="title">Troubleshooting Flow</text>
+
+  <rect x="50" y="120" width="420" height="150" class="card" />
+  <rect x="70" y="140" width="90" height="24" rx="12" ry="12" fill="#a855f7" />
+  <text x="85" y="158" class="tag">WEB</text>
+  <text x="80" y="195" class="label">Dashboard not loading</text>
+  <text x="80" y="225" class="text">1) open port 1227</text>
+  <text x="80" y="250" class="text">2) docker ps</text>
+
+  <rect x="510" y="120" width="420" height="150" class="card" />
+  <rect x="530" y="140" width="140" height="24" rx="12" ry="12" fill="#c084fc" />
+  <text x="545" y="158" class="tag">TELEGRAM</text>
+  <text x="540" y="195" class="label">No messages</text>
+  <text x="540" y="225" class="text">1) bot_token/chat_id</text>
+  <text x="540" y="250" class="text">2) restart systemd</text>
+
+  <rect x="970" y="120" width="380" height="150" class="card" />
+  <rect x="990" y="140" width="140" height="24" rx="12" ry="12" fill="#d946ef" />
+  <text x="1010" y="158" class="tag">CONFIG</text>
+  <text x="1000" y="195" class="label">Changes not applied</text>
+  <text x="1000" y="225" class="text">Web: compose up -d</text>
+  <text x="1000" y="250" class="text">Automation: restart</text>
+
+  <path d="M470 205 L510 205" class="arrow" />
+  <path d="M930 205 L970 205" class="arrow" />
+
+  <rect x="50" y="320" width="1300" height="260" class="card" />
+  <rect x="70" y="340" width="140" height="24" rx="12" ry="12" fill="#9333ea" />
+  <text x="85" y="358" class="tag">CHECKLIST</text>
+  <text x="80" y="400" class="label">Quick self-check</text>
+  <text x="80" y="435" class="text">docker ps</text>
+  <text x="80" y="465" class="text">sudo systemctl status hetzner-monitor.service</text>
+  <text x="80" y="495" class="text">sudo journalctl -u hetzner-monitor.service -n 50 --no-pager</text>
+</svg>

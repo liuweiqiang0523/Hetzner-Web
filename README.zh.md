@@ -19,7 +19,11 @@ curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/sc
 
 安装完成后，继续看下面「**配置填写**」。
 
-![安装流程](docs/quickstart-flow.svg)
+浅色版：
+![安装流程浅色](docs/quickstart-flow.light.svg)
+
+深色版：
+![安装流程深色](docs/quickstart-flow.dark.svg)
 
 ---
 
@@ -151,7 +155,11 @@ curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/sc
 
 ## 配置文件在哪里？
 
-![配置文件速查](docs/config-files.svg)
+浅色版：
+![配置文件浅色](docs/config-files.light.svg)
+
+深色版：
+![配置文件深色](docs/config-files.dark.svg)
 
 - Web：`/opt/hetzner-web/config.yaml`
 - Web 登录：`/opt/hetzner-web/web_config.json`
@@ -161,7 +169,11 @@ curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/sc
 
 ## 排错图（新手必备）
 
-![排错流程](docs/troubleshooting-flow.svg)
+浅色版：
+![排错流程浅色](docs/troubleshooting-flow.light.svg)
+
+深色版：
+![排错流程深色](docs/troubleshooting-flow.dark.svg)
 
 一键自检：
 - `docker ps`

@@ -19,7 +19,11 @@ curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/sc
 
 Then continue with **Config Setup** below.
 
-![Quick Start Flow](docs/quickstart-flow.svg)
+Light theme:
+![Quick Start Flow Light](docs/quickstart-flow.light.svg)
+
+Dark theme:
+![Quick Start Flow Dark](docs/quickstart-flow.dark.svg)
 
 ---
 
@@ -151,7 +155,11 @@ curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/sc
 
 ## Config file locations
 
-![Config Files](docs/config-files.svg)
+Light theme:
+![Config Files Light](docs/config-files.light.svg)
+
+Dark theme:
+![Config Files Dark](docs/config-files.dark.svg)
 
 - Web: `/opt/hetzner-web/config.yaml`
 - Web login: `/opt/hetzner-web/web_config.json`
@@ -161,7 +169,11 @@ curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/sc
 
 ## Troubleshooting (visual guide)
 
-![Troubleshooting Flow](docs/troubleshooting-flow.svg)
+Light theme:
+![Troubleshooting Flow Light](docs/troubleshooting-flow.light.svg)
+
+Dark theme:
+![Troubleshooting Flow Dark](docs/troubleshooting-flow.dark.svg)
 
 Quick checks:
 - `docker ps`

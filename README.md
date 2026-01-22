@@ -102,7 +102,7 @@ If any are missing, install them first (Ubuntu/Debian: `apt`).
 
 **Web config**
 - `config.yaml`: set `hetzner.api_token`
-- `web_config.json`: set `username` / `password`
+- `web_config.json`: set `username` / `password` (example defaults are `admin` / `CHANGE_ME`, must change)
 
 **Automation config**
 - `automation/config.yaml`: set Hetzner/Telegram/Cloudflare if needed

@@ -102,7 +102,7 @@ systemctl --version
 
 **Web 配置**
 - `config.yaml`：填写 `hetzner.api_token`
-- `web_config.json`：填写 `username` / `password`
+- `web_config.json`：填写 `username` / `password`（示例默认是 `admin` / `CHANGE_ME`，必须修改）
 
 **Automation 配置**
 - `automation/config.yaml`：填写 Hetzner/Telegram/Cloudflare 等

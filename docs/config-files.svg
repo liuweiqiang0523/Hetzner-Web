@@ -1,31 +1,38 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1400" height="560" viewBox="0 0 1400 560">
   <defs>
     <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
-      <stop offset="0%" stop-color="#fefce8" />
-      <stop offset="100%" stop-color="#ecfeff" />
+      <stop offset="0%" stop-color="#f8fafc" />
+      <stop offset="100%" stop-color="#e2e8f0" />
     </linearGradient>
     <style>
       .title { font: 800 30px Arial, sans-serif; fill: #0f172a; }
       .card { fill: #ffffff; stroke: #0f172a; stroke-width: 2; rx: 18; ry: 18; }
       .label { font: 800 20px Arial, sans-serif; fill: #0f172a; }
       .text { font: 500 16px Arial, sans-serif; fill: #334155; }
+      .pill { font: 700 14px Arial, sans-serif; fill: #0f172a; }
     </style>
   </defs>
 
   <rect x="0" y="0" width="1400" height="560" fill="url(#bg)" />
-  <text x="50" y="70" class="title">配置文件速查</text>
+  <text x="50" y="70" class="title">Config Files Cheat Sheet</text>
 
   <rect x="50" y="120" width="610" height="170" class="card" />
-  <text x="80" y="165" class="label">Web 面板</text>
-  <text x="80" y="205" class="text">/opt/hetzner-web/config.yaml</text>
-  <text x="80" y="235" class="text">/opt/hetzner-web/web_config.json</text>
+  <rect x="70" y="135" width="90" height="26" rx="13" ry="13" fill="#22c55e" />
+  <text x="88" y="154" class="pill">WEB</text>
+  <text x="80" y="195" class="label">Dashboard</text>
+  <text x="80" y="230" class="text">/opt/hetzner-web/config.yaml</text>
+  <text x="80" y="255" class="text">/opt/hetzner-web/web_config.json</text>
 
   <rect x="740" y="120" width="610" height="170" class="card" />
-  <text x="770" y="165" class="label">Automation</text>
-  <text x="770" y="205" class="text">/opt/hetzner-web/automation/config.yaml</text>
+  <rect x="760" y="135" width="150" height="26" rx="13" ry="13" fill="#38bdf8" />
+  <text x="778" y="154" class="pill">AUTOMATION</text>
+  <text x="770" y="195" class="label">Monitor Service</text>
+  <text x="770" y="230" class="text">/opt/hetzner-web/automation/config.yaml</text>
 
   <rect x="50" y="330" width="1300" height="170" class="card" />
-  <text x="80" y="375" class="label">改完配置后</text>
-  <text x="80" y="415" class="text">Web: docker compose up -d --build</text>
-  <text x="80" y="445" class="text">Automation: systemctl restart hetzner-monitor.service</text>
+  <rect x="70" y="345" width="120" height="26" rx="13" ry="13" fill="#f59e0b" />
+  <text x="85" y="364" class="pill">RESTART</text>
+  <text x="80" y="405" class="label">After editing configs</text>
+  <text x="80" y="440" class="text">Web: docker compose up -d --build</text>
+  <text x="80" y="465" class="text">Automation: systemctl restart hetzner-monitor.service</text>
 </svg>

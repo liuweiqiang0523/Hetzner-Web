@@ -23,6 +23,13 @@ Then continue with **Config Setup** below.
 
 ---
 
+## Screenshots
+
+![Web Dashboard](docs/web.png)
+![Telegram Bot](docs/telegram.png)
+
+---
+
 ## Which install do I need?
 
 - New users: use the **all-in-one script** (Web + automation + Telegram).

@@ -23,6 +23,13 @@ curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/sc
 
 ---
 
+## 界面截图
+
+![Web 控制台](docs/web.png)
+![Telegram 机器人](docs/telegram.png)
+
+---
+
 ## 我该装哪一个？
 
 - 新手/省事：用 **二合一脚本**（Web + automation + Telegram）。
@@ -211,4 +218,3 @@ curl -fsSL https://raw.githubusercontent.com/liuweiqiang0523/Hetzner-Web/main/sc
 - `/reboot <ID>`：重启服务器
 - `/delete <ID> confirm`：删除服务器
 - `/rebuild <ID>`：重建服务器
-

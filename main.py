@@ -1047,7 +1047,14 @@ def _perform_rebuild(
             _send_telegram_markdown(
                 bot_token,
                 chat_id,
-                f"🚨 *流量超限警报！*\\n\\n🖥 服务器: *{server_name}*\\n⚡ 准备自动重建...",
+                "\n".join(
+                    [
+                        "🚨 *流量超限警报！*",
+                        "",
+                        f"🖥 服务器: *{server_name}*",
+                        "⚡ 准备自动重建...",
+                    ]
+                ),
             )
 
         result = client.rebuild_server(server_id, config)
@@ -1079,18 +1086,25 @@ def _perform_rebuild(
                 if dns_result.get("success") and resolved:
                     verify = _verify_dns_record(resolved["record"], result.get("new_ip", ""))
                     if verify.get("ok"):
-                        verify_text = f"\n✅ DNS 解析一致: `{verify.get('resolved')}`"
+                        verify_text = f"✅ DNS 解析一致: `{verify.get('resolved')}`"
                     elif verify.get("resolved"):
-                        verify_text = f"\n⚠️ DNS 解析不一致: `{verify.get('resolved')}`"
+                        verify_text = f"⚠️ DNS 解析不一致: `{verify.get('resolved')}`"
                     elif verify.get("error"):
-                        verify_text = f"\n⚠️ DNS 校验失败: {verify.get('error')}"
+                        verify_text = f"⚠️ DNS 校验失败: {verify.get('error')}"
+            lines = [
+                "✅ *重建成功！流量已重置*",
+                "",
+                f"🆔 新ID: `{result.get('new_server_id')}`",
+                f"🌐 新IP: `{result.get('new_ip')}`",
+            ]
+            if dns_text:
+                lines.extend(["", dns_text])
+                if verify_text:
+                    lines.append(verify_text)
             _send_telegram_markdown(
                 bot_token,
                 chat_id,
-                "✅ *重建成功！流量已重置*\\n\\n"
-                f"🆔 新ID: `{result.get('new_server_id')}`\\n"
-                f"🌐 新IP: `{result.get('new_ip')}`\\n\\n"
-                f"{dns_text}{verify_text}",
+                "\n".join(lines),
             )
         return {"success": True, "dns": dns_result}
     finally:

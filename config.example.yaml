@@ -6,6 +6,17 @@ traffic:
   check_interval: 5
   exceed_action: "rebuild"
 
+qbittorrent:
+  enabled: false
+  counter_mode: "alltime" # "alltime" or "session"
+  instances:
+    - name: "qb-main"
+      url: "http://127.0.0.1:8080"
+      username: "admin"
+      password: "adminadmin"
+      verify_ssl: true
+      timeout_seconds: 6
+
 scheduler:
   enabled: false
   delete_time: "23:50"

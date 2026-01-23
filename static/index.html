@@ -493,6 +493,16 @@
         z-index: 3;
       }
 
+      .diff-high {
+        color: #c0263e;
+        font-weight: 600;
+      }
+
+      .diff-mid {
+        color: #d97706;
+        font-weight: 600;
+      }
+
       .daily-matrix thead th {
         position: sticky;
         top: 0;
@@ -1892,6 +1902,53 @@
           </div>
 
           <div class="card">
+            <h3 class="title-with-icon">{{ langPack.qbTitle }}</h3>
+            <div class="subtitle">{{ langPack.qbSubtitle }}</div>
+            <div class="toolbar">
+              <div class="toolbar-left">
+                <div class="status">{{ langPack.tableTrend }}</div>
+                <select class="table-filter" v-model="qbSort">
+                  <option value="diff_desc">{{ langPack.qbSortDiffDesc }}</option>
+                  <option value="diff_asc">{{ langPack.qbSortDiffAsc }}</option>
+                </select>
+              </div>
+            </div>
+            <div class="table-wrap" v-if="qbEnabled && qbInstances.length">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>{{ langPack.qbTableName }}</th>
+                    <th>{{ langPack.qbTableHetzner }}</th>
+                    <th>{{ langPack.qbTableUpload }}</th>
+                    <th>{{ langPack.qbTableDiff }}</th>
+                    <th>{{ langPack.qbTableDownload }}</th>
+                    <th>{{ langPack.qbTableDownloadDiff }}</th>
+                    <th>{{ langPack.qbTableUpSpeed }}</th>
+                    <th>{{ langPack.qbTableDownSpeed }}</th>
+                    <th>{{ langPack.qbTableStatus }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="s in qbCompareRows" :key="s.id">
+                    <td>{{ s.name }}</td>
+                    <td class="mono">{{ s.outbound_tb }}</td>
+                    <td class="mono">{{ s.qb_upload_tb }}</td>
+                    <td class="mono" :class="qbDiffClass(s.qb_diff_tb)">{{ s.qb_diff_tb }}</td>
+                    <td class="mono">{{ s.qb_download_tb }}</td>
+                    <td class="mono" :class="qbDiffClass(s.qb_diff_in_tb)">{{ s.qb_diff_in_tb }}</td>
+                    <td class="mono">{{ s.qb_up_speed }}</td>
+                    <td class="mono">{{ s.qb_down_speed }}</td>
+                    <td>{{ s.qb_status }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div v-else class="muted">
+              {{ qbEnabled ? langPack.qbEmpty : langPack.qbDisabled }}
+            </div>
+          </div>
+
+          <div class="card">
             <h3 class="title-with-icon">{{ langPack.trafficTitle }}</h3>
             <div class="toolbar">
               <div class="status">{{ langPack.hourlyDateLabel }}</div>
@@ -2083,6 +2140,14 @@
             trackingOutboundTb: "",
             trackingInboundTb: "",
             trackingStart: "",
+            qbEnabled: false,
+            qbInstances: [],
+            qbCounterMode: "",
+            qbTotalUploadBytes: 0,
+            qbTotalDownloadBytes: 0,
+            qbTotalUploadTb: "0.000",
+            qbTotalDownloadTb: "0.000",
+            qbSort: "diff_desc",
             todayOutboundTb: "0.000",
             todayInboundTb: "0.000",
             yesterdayOutboundTb: "0.000",
@@ -2164,6 +2229,24 @@
                 monthDailyAvg: "Daily avg",
                 monthPeak: "Peak",
                 recentRebuild: "♻️ Recent rebuild",
+                qbTitle: "🧲 qBittorrent · Transfer",
+                qbSubtitle: "Per-server comparison between Hetzner outbound and qBittorrent upload.",
+                qbCounterMode: "Counter mode",
+                qbCounterAlltime: "All-time",
+                qbCounterSession: "Session",
+                qbTableName: "Server",
+                qbTableHetzner: "HZ outbound (TB)",
+                qbTableUpload: "qB upload (TB)",
+                qbTableDiff: "Upload diff (TB)",
+                qbTableDownload: "qB download (TB)",
+                qbTableDownloadDiff: "Download diff (TB)",
+                qbTableUpSpeed: "Up speed",
+                qbTableDownSpeed: "Down speed",
+                qbTableStatus: "qB status",
+                qbSortDiffDesc: "Diff high to low",
+                qbSortDiffAsc: "Diff low to high",
+                qbDisabled: "qBittorrent is disabled.",
+                qbEmpty: "No qBittorrent instances configured.",
                 aboutTitle: "About",
                 aboutLead: "A crisp traffic command center for Hetzner Cloud.",
                 aboutBody:
@@ -2259,6 +2342,24 @@
               monthDailyAvg: "本月日均",
               monthPeak: "峰值",
               recentRebuild: "♻️ 最近重建",
+              qbTitle: "🧲 qBittorrent · 传输",
+              qbSubtitle: "逐台对比 Hetzner 出站与 qBittorrent 上传。",
+              qbCounterMode: "统计模式",
+              qbCounterAlltime: "全部时间",
+              qbCounterSession: "本次会话",
+              qbTableName: "机器",
+              qbTableHetzner: "HZ 出站（TB）",
+              qbTableUpload: "qB 上传（TB）",
+              qbTableDiff: "上传差值（TB）",
+              qbTableDownload: "qB 下载（TB）",
+              qbTableDownloadDiff: "下载差值（TB）",
+              qbTableUpSpeed: "上传速度",
+              qbTableDownSpeed: "下载速度",
+              qbTableStatus: "qB 状态",
+              qbSortDiffDesc: "差值高到低",
+              qbSortDiffAsc: "差值低到高",
+              qbDisabled: "qBittorrent 未启用。",
+              qbEmpty: "未配置 qBittorrent 实例。",
               aboutTitle: "关于",
               aboutLead: "面向 Hetzner Cloud 的流量指挥台。",
               aboutBody: "追踪日/小时用量，提前发现触顶风险，并在仪表盘内直接执行重建/DNS 检查。",
@@ -2377,6 +2478,19 @@
               default:
                 return [...list].sort((a, b) => (a.name || "").localeCompare(b.name || ""));
             }
+          },
+          qbCompareRows() {
+            const rows = (this.servers || []).map((s) => ({ ...s }));
+            const numVal = (value) => {
+              const num = parseFloat(value);
+              return Number.isFinite(num) ? num : -Infinity;
+            };
+            const sorters = {
+              diff_desc: (a, b) => numVal(b.qb_diff_tb) - numVal(a.qb_diff_tb),
+              diff_asc: (a, b) => numVal(a.qb_diff_tb) - numVal(b.qb_diff_tb),
+            };
+            const sorter = sorters[this.qbSort] || sorters.diff_desc;
+            return rows.sort(sorter);
           },
           cycleEtaDisplay() {
             if (this.cycleEtaHours === null || !Number.isFinite(this.cycleEtaHours)) return "—";
@@ -2630,6 +2744,32 @@
             const tib = num * 0.909495;
             return tib.toFixed(digits);
           },
+          formatBytesTb(value, digits = 3) {
+            const num = Number(value);
+            if (!Number.isFinite(num)) return "—";
+            const tb = num / Math.pow(1024, 4);
+            return tb.toFixed(digits);
+          },
+          formatSpeed(bytesPerSecond) {
+            const num = Number(bytesPerSecond);
+            if (!Number.isFinite(num)) return "—";
+            if (num <= 0) return "0 B/s";
+            const units = ["B/s", "KiB/s", "MiB/s", "GiB/s"];
+            let idx = 0;
+            let value = num;
+            while (value >= 1024 && idx < units.length - 1) {
+              value /= 1024;
+              idx += 1;
+            }
+            return `${value.toFixed(value >= 10 ? 1 : 2)} ${units[idx]}`;
+          },
+          qbDiffClass(value) {
+            const num = Number(value);
+            if (!Number.isFinite(num)) return "";
+            if (num >= 0.5) return "diff-high";
+            if (num >= 0.2) return "diff-mid";
+            return "";
+          },
           clearHourlyDate() {
             this.hourlyDate = "";
             this.fetchHourly();
@@ -2714,6 +2854,52 @@
               this.lastRebuildAt = "";
               this.lastRebuildServer = "";
             }
+            const qb = data.qbittorrent || {};
+            this.qbEnabled = qb.enabled || false;
+            this.qbInstances = qb.instances || [];
+            this.qbCounterMode = qb.counter_mode || "";
+            this.qbTotalUploadBytes = qb.total_upload_bytes || 0;
+            this.qbTotalDownloadBytes = qb.total_download_bytes || 0;
+            this.qbTotalUploadTb = this.formatBytesTb(this.qbTotalUploadBytes);
+            this.qbTotalDownloadTb = this.formatBytesTb(this.qbTotalDownloadBytes);
+            const qbMap = new Map(
+              (this.qbInstances || []).map((inst) => [String(inst.name || ""), inst])
+            );
+            this.servers = (this.servers || []).map((srv) => {
+              const match = qbMap.get(String(srv.name || ""));
+              const qbUploadTb = match ? this.formatBytesTb(match.upload_bytes) : "—";
+              const qbDownloadTb = match ? this.formatBytesTb(match.download_bytes) : "—";
+              const outTb = parseFloat(srv.outbound_tb || 0);
+              const inTb = parseFloat(srv.inbound_tb || 0);
+              const qbOutTb = match ? parseFloat(qbUploadTb) : NaN;
+              const qbInTb = match ? parseFloat(qbDownloadTb) : NaN;
+              let qbDiff = "—";
+              let qbDiffIn = "—";
+              let qbStatus = "—";
+              let qbUpSpeed = "—";
+              let qbDownSpeed = "—";
+              if (Number.isFinite(outTb) && Number.isFinite(qbOutTb) && qbOutTb > 0) {
+                qbDiff = (outTb - qbOutTb).toFixed(3);
+              }
+              if (Number.isFinite(inTb) && Number.isFinite(qbInTb) && qbInTb > 0) {
+                qbDiffIn = (inTb - qbInTb).toFixed(3);
+              }
+              if (match) {
+                qbStatus = match.status === "ok" ? (match.connection_status || "OK") : (match.error || "error");
+                qbUpSpeed = this.formatSpeed(match.upload_speed);
+                qbDownSpeed = this.formatSpeed(match.download_speed);
+              }
+              return {
+                ...srv,
+                qb_upload_tb: qbUploadTb,
+                qb_download_tb: qbDownloadTb,
+                qb_diff_tb: qbDiff,
+                qb_diff_in_tb: qbDiffIn,
+                qb_up_speed: qbUpSpeed,
+                qb_down_speed: qbDownSpeed,
+                qb_status: qbStatus,
+              };
+            });
             await this.fetchHourly();
             await this.fetchDaily();
           },
@@ -3319,6 +3505,23 @@
               updated_at: updated,
               tracking: { start: "2026-01-14 00:00", outbound_tb: "17.366", inbound_tb: "7.969" },
               traffic: { limit_gb: 18432, limit_tb: "18.000", cost_per_tb_eur: 1 },
+              qbittorrent: {
+                enabled: true,
+                counter_mode: "alltime",
+                total_upload_bytes: 18554258752,
+                total_download_bytes: 6524157696,
+                instances: [
+                  {
+                    name: "qb-main",
+                    status: "ok",
+                    upload_bytes: 18554258752,
+                    download_bytes: 6524157696,
+                    upload_speed: 5120000,
+                    download_speed: 12400000,
+                    connection_status: "connected",
+                  },
+                ],
+              },
               rebuilds: { "117712568": "2026-01-16 12:30:00" },
             };
           },

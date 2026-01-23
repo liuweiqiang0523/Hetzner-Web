@@ -75,6 +75,204 @@ def _quantize_tb(value: Decimal) -> Decimal:
     return value.quantize(Decimal("0.001"), rounding=ROUND_HALF_UP)
 
 
+def _normalize_qb_instances(qb_cfg: Dict[str, Any]) -> List[Dict[str, Any]]:
+    instances = qb_cfg.get("instances")
+    if instances is None:
+        url = qb_cfg.get("url")
+        if url:
+            instances = [
+                {
+                    "name": qb_cfg.get("name"),
+                    "url": url,
+                    "username": qb_cfg.get("username"),
+                    "password": qb_cfg.get("password"),
+                    "verify_ssl": qb_cfg.get("verify_ssl", True),
+                    "timeout_seconds": qb_cfg.get("timeout_seconds"),
+                    "counter_mode": qb_cfg.get("counter_mode"),
+                }
+            ]
+    if not instances:
+        return []
+    normalized = []
+    for entry in instances:
+        if not isinstance(entry, dict):
+            continue
+        url = entry.get("url") or entry.get("base_url")
+        if not url:
+            continue
+        normalized.append(
+            {
+                "name": entry.get("name"),
+                "url": url,
+                "username": entry.get("username"),
+                "password": entry.get("password"),
+                "verify_ssl": entry.get("verify_ssl", True),
+                "timeout_seconds": entry.get("timeout_seconds"),
+                "counter_mode": entry.get("counter_mode"),
+            }
+        )
+    return normalized
+
+
+def _fetch_qb_instance(instance: Dict[str, Any], counter_mode: str) -> Dict[str, Any]:
+    base_url = str(instance.get("url") or "").rstrip("/")
+    name = instance.get("name") or base_url
+    username = instance.get("username") or ""
+    password = instance.get("password") or ""
+    timeout = float(instance.get("timeout_seconds") or 6)
+    verify_ssl = instance.get("verify_ssl", True)
+    if not base_url or not username or not password:
+        return {
+            "name": name,
+            "url": base_url,
+            "status": "error",
+            "error": "missing_credentials",
+            "counter_mode": counter_mode,
+        }
+    session = requests.Session()
+    try:
+        login = session.post(
+            f"{base_url}/api/v2/auth/login",
+            data={"username": username, "password": password},
+            timeout=timeout,
+            verify=verify_ssl,
+        )
+    except Exception as exc:
+        return {
+            "name": name,
+            "url": base_url,
+            "status": "error",
+            "error": f"login_failed: {exc}",
+            "counter_mode": counter_mode,
+        }
+    if login.status_code != 200 or "Ok." not in login.text:
+        return {
+            "name": name,
+            "url": base_url,
+            "status": "error",
+            "error": "login_failed",
+            "counter_mode": counter_mode,
+        }
+    try:
+        info = session.get(
+            f"{base_url}/api/v2/sync/maindata",
+            timeout=timeout,
+            verify=verify_ssl,
+        )
+        payload = info.json()
+    except Exception as exc:
+        return {
+            "name": name,
+            "url": base_url,
+            "status": "error",
+            "error": f"fetch_failed: {exc}",
+            "counter_mode": counter_mode,
+        }
+    state = payload.get("server_state") or {}
+    alltime_ul = state.get("alltime_ul")
+    alltime_dl = state.get("alltime_dl")
+    up_info = state.get("up_info_data")
+    dl_info = state.get("dl_info_data")
+    if counter_mode == "session":
+        upload_bytes = up_info
+        download_bytes = dl_info
+    else:
+        upload_bytes = alltime_ul if alltime_ul is not None else up_info
+        download_bytes = alltime_dl if alltime_dl is not None else dl_info
+    return {
+        "name": name,
+        "url": base_url,
+        "status": "ok",
+        "upload_bytes": upload_bytes,
+        "download_bytes": download_bytes,
+        "upload_speed": state.get("up_info_speed"),
+        "download_speed": state.get("dl_info_speed"),
+        "connection_status": state.get("connection_status"),
+        "counter_mode": counter_mode,
+    }
+
+
+def _collect_qbittorrent_stats(config: Dict[str, Any]) -> Dict[str, Any]:
+    qb_cfg = config.get("qbittorrent", {}) or {}
+    if not qb_cfg.get("enabled"):
+        return {"enabled": False, "instances": []}
+    counter_mode = qb_cfg.get("counter_mode", "alltime")
+    instances = _normalize_qb_instances(qb_cfg)
+    if not instances:
+        return {
+            "enabled": True,
+            "instances": [],
+            "total_upload_bytes": 0,
+            "total_download_bytes": 0,
+            "counter_mode": counter_mode,
+        }
+    results = []
+    total_upload = 0
+    total_download = 0
+    for instance in instances:
+        instance_mode = instance.get("counter_mode") or counter_mode
+        result = _fetch_qb_instance(instance, instance_mode)
+        results.append(result)
+        if result.get("status") == "ok":
+            upload = result.get("upload_bytes")
+            download = result.get("download_bytes")
+            if isinstance(upload, (int, float)):
+                total_upload += int(upload)
+            if isinstance(download, (int, float)):
+                total_download += int(download)
+    return {
+        "enabled": True,
+        "instances": results,
+        "total_upload_bytes": total_upload,
+        "total_download_bytes": total_download,
+        "counter_mode": counter_mode,
+    }
+
+
+def _qb_instance_map(qb_stats: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
+    instances = qb_stats.get("instances") or []
+    return {str(inst.get("name")): inst for inst in instances if inst.get("name")}
+
+
+def _build_qb_compare_line(
+    server_name: str,
+    outbound_bytes: Optional[float],
+    inbound_bytes: Optional[float],
+    qb_map: Dict[str, Dict[str, Any]],
+) -> Optional[str]:
+    if outbound_bytes is None and inbound_bytes is None:
+        return None
+    if not qb_map:
+        return None
+    inst = qb_map.get(server_name)
+    if not inst:
+        return None
+    if inst.get("status") != "ok":
+        return f"🧲 qB: {inst.get('error') or 'error'}"
+    upload_bytes = inst.get("upload_bytes")
+    download_bytes = inst.get("download_bytes")
+    if upload_bytes is None:
+        return None
+    qb_upload_tb = _bytes_to_tb_precise(float(upload_bytes))
+    qb_download_tb = _bytes_to_tb_precise(float(download_bytes)) if download_bytes is not None else None
+    diff = None
+    if outbound_bytes is not None:
+        outbound_tb = _bytes_to_tb_precise(float(outbound_bytes))
+        diff = (outbound_tb - qb_upload_tb).quantize(Decimal("0.000"), rounding=ROUND_HALF_UP)
+    diff_in = None
+    if inbound_bytes is not None and qb_download_tb is not None:
+        inbound_tb = _bytes_to_tb_precise(float(inbound_bytes))
+        diff_in = (inbound_tb - qb_download_tb).quantize(Decimal("0.000"), rounding=ROUND_HALF_UP)
+    lines = [f"🧲 qB 上传: {qb_upload_tb} TB"]
+    if qb_download_tb is not None:
+        lines.append(f"📥 qB 下载: {qb_download_tb} TB")
+    if diff is not None:
+        lines.append(f"📏 上传差值: {diff} TB")
+    if diff_in is not None:
+        lines.append(f"📏 下载差值: {diff_in} TB")
+    return "\n".join(lines)
+
+
 def _date_from_hour_key(key: str) -> Optional[str]:
     if not key:
         return None
@@ -814,6 +1012,7 @@ def _format_traffic_notification(
     limit_tb: Decimal,
     percent: float,
     threshold: int,
+    qb_line: Optional[str] = None,
 ) -> str:
     emojis = {
         10: "💧",
@@ -833,7 +1032,7 @@ def _format_traffic_notification(
     outbound_tb_precise = _bytes_to_tb_precise(float(outbound_bytes)) if outbound_bytes is not None else Decimal("0.000")
     remaining_tb = (limit_tb - outbound_tb).quantize(Decimal("0.001"), rounding=ROUND_HALF_UP)
     bar = _progress_bar(percent)
-    return (
+    message = (
         f"{emoji} *流量通知 - {threshold}%*\n\n"
         f"🖥 服务器: *{server_name}*\n"
         f"📊 使用进度:\n"
@@ -843,6 +1042,9 @@ def _format_traffic_notification(
         f"📥 入站: {inbound_tb} TB\n"
         f"📤 出站: {outbound_tb_precise} TB"
     )
+    if qb_line:
+        message = f"{message}\n\n{qb_line}"
+    return message
 
 
 def _format_exceed_notification(server_name: str, percent: float) -> str:
@@ -886,6 +1088,8 @@ def _build_daily_report(config: Dict[str, Any], client: "HetznerClient") -> str:
             limit_bytes = None
 
     servers = client.get_servers()
+    qb_stats = _collect_qbittorrent_stats(config)
+    qb_map = _qb_instance_map(qb_stats) if qb_stats.get("enabled") else {}
     lines = [f"📅 **每日定时战报 ({_now_local().strftime('%Y-%m-%d')})**"]
     for s in servers:
         detail = client.get_server(s["id"]) or {}
@@ -900,12 +1104,21 @@ def _build_daily_report(config: Dict[str, Any], client: "HetznerClient") -> str:
         outbound_tb = _bytes_to_tb(float(outgoing))
         inbound_tb = _bytes_to_tb(float(ingoing))
         percent_text = f" ({percent:.2f}%)" if percent is not None else ""
-        lines.append(
+        qb_line = _build_qb_compare_line(
+            detail.get("name") or s.get("name") or s["id"],
+            outgoing,
+            ingoing,
+            qb_map,
+        )
+        block = (
             "━━━━━━━━━━\n"
             f"🖥️ `{detail.get('name') or s.get('name') or s['id']}`\n"
             f"📤 总上传: `{outbound_tb} TB`{percent_text}\n"
             f"📥 总下载: `{inbound_tb} TB`"
         )
+        if qb_line:
+            block = f"{block}\n{qb_line}"
+        lines.append(block)
     return "\n".join(lines)
 
 
@@ -1308,6 +1521,8 @@ def _monitor_traffic_loop() -> None:
             levels = _parse_alert_levels(telegram_cfg.get("notify_levels"))
             client = HetznerClient(config["hetzner"]["api_token"])
             servers = client.get_servers()
+            qb_stats = _collect_qbittorrent_stats(config)
+            qb_map = _qb_instance_map(qb_stats) if qb_stats.get("enabled") else {}
 
             for s in servers:
                 sid = str(s["id"])
@@ -1343,6 +1558,12 @@ def _monitor_traffic_loop() -> None:
                     limit_tb = (Decimal(limit_bytes) / (Decimal(1024) ** 4)).quantize(
                         Decimal("0.001"), rounding=ROUND_HALF_UP
                     )
+                    qb_line = _build_qb_compare_line(
+                        server_name,
+                        outgoing,
+                        detail.get("ingoing_traffic"),
+                        qb_map,
+                    )
                     notify_text = _format_traffic_notification(
                         server_name,
                         outgoing,
@@ -1350,6 +1571,7 @@ def _monitor_traffic_loop() -> None:
                         limit_tb,
                         percent,
                         int(new_level),
+                        qb_line,
                     )
                     if _send_telegram_markdown(bot_token, chat_id, notify_text):
                         state["last_level"] = int(new_level)
@@ -2159,6 +2381,7 @@ def api_servers(request: Request) -> JSONResponse:
     tracking = _compute_tracking_totals(hourly, web_cfg.get("tracking_start"))
     name_map = {str(s["id"]): s.get("name") or str(s["id"]) for s in servers}
     rebuilds = _detect_last_rebuilds(state.get("hourly", {}), name_map)
+    qb_stats = _collect_qbittorrent_stats(config)
     return JSONResponse(
         {
             "servers": rows,
@@ -2169,6 +2392,7 @@ def api_servers(request: Request) -> JSONResponse:
                 "limit_tb": str(limit_tb) if limit_tb is not None else None,
                 "cost_per_tb_eur": 1,
             },
+            "qbittorrent": qb_stats,
             "rebuilds": rebuilds,
         }
     )

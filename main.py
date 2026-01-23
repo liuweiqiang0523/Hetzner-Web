@@ -1039,8 +1039,8 @@ def _format_traffic_notification(
         f"`{bar}` {percent:.1f}%\n\n"
         f"💾 已用(出站): *{outbound_tb} TB* / {limit_tb} TB\n"
         f"📉 剩余: {remaining_tb} TB\n\n"
-        f"📥 入站: {inbound_tb} TB\n"
-        f"📤 出站: {outbound_tb_precise} TB"
+        f"📤 出站: {outbound_tb_precise} TB\n"
+        f"📥 入站: {inbound_tb} TB"
     )
     if qb_line:
         message = f"{message}\n\n{qb_line}"

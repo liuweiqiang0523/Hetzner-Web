@@ -43,7 +43,7 @@ Then continue with **Config Setup** below.
 <a id="screenshots"></a>
 ## ![Camera](docs/icon-camera.svg) Screenshots
 
-![Web Dashboard](docs/web.png)
+![Web Dashboard](docs/web2.png)
 ![Telegram Bot](docs/telegram2.png)
 
 ---

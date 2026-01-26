@@ -111,6 +111,7 @@ If any are missing, install them first (Ubuntu/Debian: `apt`).
 - `cloudflare.update_retries`, `cloudflare.update_retry_delay`, `cloudflare.rebuild_sync_delay_seconds` for DNS retry + post-rebuild sync
 - `qbittorrent.rebuild_cooldown_seconds`, `qbittorrent.instances[].login_retries`, `qbittorrent.instances[].login_retry_delay` for login retry + cooldown
 - Telegram: `/dnsync` to force a DNS sync on demand
+- `report_state.json` is backed up daily to `report_state_backups/` (keeps the latest 3 files)
 
 Apply changes:
 

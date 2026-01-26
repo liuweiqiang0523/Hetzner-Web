@@ -111,6 +111,7 @@ systemctl --version
 - `cloudflare.update_retries`, `cloudflare.update_retry_delay`, `cloudflare.rebuild_sync_delay_seconds`：DNS 更新重试与重建后补偿同步
 - `qbittorrent.rebuild_cooldown_seconds`, `qbittorrent.instances[].login_retries`, `qbittorrent.instances[].login_retry_delay`：登录重试与冷却期
 - Telegram：`/dnsync` 可手动触发 DNS 同步
+- `report_state.json` 每日备份到 `report_state_backups/`（仅保留最近 3 份）
 
 应用配置：
 

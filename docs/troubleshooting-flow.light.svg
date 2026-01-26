@@ -57,6 +57,6 @@
   <text x="95" y="358" class="tag">CHECKLIST</text>
   <text x="80" y="400" class="label">Quick self-check</text>
   <text x="80" y="435" class="text">docker ps</text>
-  <text x="80" y="465" class="text">sudo systemctl status hetzner-monitor.service</text>
-  <text x="80" y="495" class="text">sudo journalctl -u hetzner-monitor.service -n 50 --no-pager</text>
+  <text x="80" y="465" class="text">sudo systemctl status hetzner-web.service</text>
+  <text x="80" y="495" class="text">sudo journalctl -u hetzner-web.service -n 50 --no-pager</text>
 </svg>

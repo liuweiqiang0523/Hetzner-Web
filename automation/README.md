@@ -28,12 +28,12 @@ What the one-line script does (for beginners):
 2. Clones the repo into that directory.
 3. Sets up the Python environment and installs dependencies.
 4. Generates/copies default config files (you still need to fill in tokens/credentials).
-5. Installs and starts the `hetzner-monitor.service`.
+5. Installs and starts the `hetzner-web.service`.
 
 Beginner step-by-step (what to fill):
 1. Run the one-line command (no input needed).
 2. Edit `/opt/hetzner-web/automation/config.yaml`: set `hetzner.api_token` (required), then fill Telegram/Cloudflare/Snapshot map if used.
-3. Restart the service: `sudo systemctl restart hetzner-monitor.service`.
+3. Restart the service: `sudo systemctl restart hetzner-web.service`.
 
 Default install dir: `/opt/hetzner-web` (override by passing a path to the script).
 
@@ -72,9 +72,9 @@ Supported variables:
 ## Service management
 
 ```bash
-sudo systemctl status hetzner-monitor.service
-sudo systemctl restart hetzner-monitor.service
-sudo journalctl -u hetzner-monitor.service -f
+sudo systemctl status hetzner-web.service
+sudo systemctl restart hetzner-web.service
+sudo journalctl -u hetzner-web.service -f
 ```
 
 ## Configuration

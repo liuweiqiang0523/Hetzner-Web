@@ -8,7 +8,7 @@ fi
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 VENV_DIR="${ROOT_DIR}/venv"
-SERVICE_FILE="/etc/systemd/system/hetzner-monitor.service"
+SERVICE_FILE="/etc/systemd/system/hetzner-web.service"
 
 if [[ ! -f "${ROOT_DIR}/config.yaml" ]]; then
   if [[ -f "${ROOT_DIR}/config.example.yaml" ]]; then
@@ -48,7 +48,7 @@ WantedBy=multi-user.target
 EOF
 
 systemctl daemon-reload
-systemctl enable --now hetzner-monitor.service
+systemctl enable --now hetzner-web.service
 
-echo "Installed and started: hetzner-monitor.service"
+echo "Installed and started: hetzner-web.service"
 echo "Edit ${ROOT_DIR}/config.yaml with your API tokens and settings."

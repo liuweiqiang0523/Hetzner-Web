@@ -119,7 +119,7 @@ Apply changes:
 cd /opt/hetzner-web
 
 docker compose up -d --build
-sudo systemctl restart hetzner-monitor.service
+sudo systemctl restart hetzner-web.service
 ```
 
 Open: `http://<your-server-ip>:1227`
@@ -141,7 +141,7 @@ telegram:
 Then restart automation:
 
 ```bash
-sudo systemctl restart hetzner-monitor.service
+sudo systemctl restart hetzner-web.service
 ```
 
 ---
@@ -164,8 +164,8 @@ sudo systemctl restart hetzner-monitor.service
 
 Quick checks:
 - `docker ps`
-- `sudo systemctl status hetzner-monitor.service`
-- `sudo journalctl -u hetzner-monitor.service -n 50 --no-pager`
+- `sudo systemctl status hetzner-web.service`
+- `sudo journalctl -u hetzner-web.service -n 50 --no-pager`
 
 ---
 

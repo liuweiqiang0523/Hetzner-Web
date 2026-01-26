@@ -18,7 +18,7 @@ class TrafficMonitor:
         self.warning_thresholds = config['traffic']['warning_thresholds']
         self.whitelist_ids = config['whitelist']['server_ids']
         self.whitelist_names = config['whitelist']['server_names']
-        self._threshold_state_path = Path("/opt/hetzner-monitor/threshold_state.json")
+        self._threshold_state_path = Path("/opt/hetzner-web/threshold_state.json")
 
     def set_telegram_bot(self, telegram_bot: Optional[object]):
         self.telegram_bot = telegram_bot

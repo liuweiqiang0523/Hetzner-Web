@@ -7,6 +7,7 @@ services:
     restart: unless-stopped
     environment:
       TZ: Asia/Shanghai
+      HETZNER_WEB_DISABLE_WORKERS: "true"
       REPORT_STATE_BACKUP_DIR: /app/report_state_backups
     ports:
       - "1227:1227"

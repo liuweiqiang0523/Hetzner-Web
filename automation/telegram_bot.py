@@ -7,8 +7,9 @@ import os
 import socket
 import threading
 import time
-from typing import Dict, Optional
+from typing import Any, Dict, List, Optional
 import yaml
+import requests
 
 try:
     from telegram import Update
@@ -66,8 +67,218 @@ class TelegramBot:
             Decimal("0.001"), rounding=ROUND_HALF_UP
         )
 
+    @staticmethod
+    def _bytes_to_tb_precise(value_bytes: float, places: str = "0.000") -> Decimal:
+        return (Decimal(value_bytes) / (Decimal(1024) ** 4)).quantize(
+            Decimal(places), rounding=ROUND_HALF_UP
+        )
+
+    @staticmethod
+    def _progress_bar(percent: float) -> str:
+        bars = int(max(0, min(100, percent)) / 10)
+        return "█" * bars + "░" * (10 - bars)
+
+    def _normalize_qb_instances(self, qb_cfg: Dict[str, Any]) -> List[Dict[str, Any]]:
+        instances: List[Dict[str, Any]] = []
+        for inst in qb_cfg.get("instances", []) or []:
+            if not isinstance(inst, dict):
+                continue
+            name = inst.get("name") or inst.get("server_name") or inst.get("server")
+            url = inst.get("url") or inst.get("host")
+            if not name or not url:
+                continue
+            instances.append(
+                {
+                    "name": str(name),
+                    "url": str(url).rstrip("/"),
+                    "username": inst.get("username") or "",
+                    "password": inst.get("password") or "",
+                    "verify_ssl": bool(inst.get("verify_ssl", True)),
+                    "timeout": inst.get("timeout", 10),
+                    "login_retries": inst.get("login_retries", 2),
+                    "login_retry_delay": inst.get("login_retry_delay", 1),
+                    "counter_mode": inst.get("counter_mode"),
+                }
+            )
+        return instances
+
+    def _fetch_qb_instance(self, instance: Dict[str, Any], counter_mode: str) -> Dict[str, Any]:
+        name = instance.get("name")
+        base_url = instance.get("url")
+        username = instance.get("username")
+        password = instance.get("password")
+        verify_ssl = instance.get("verify_ssl", True)
+        timeout = instance.get("timeout", 10)
+        login_retries = max(1, int(instance.get("login_retries", 2)))
+        login_retry_delay = float(instance.get("login_retry_delay", 1))
+        if not (name and base_url):
+            return {"name": name or "unknown", "url": base_url or "", "status": "error", "error": "missing_url"}
+        if not username or not password:
+            return {
+                "name": name,
+                "url": base_url,
+                "status": "error",
+                "error": "missing_credentials",
+                "counter_mode": counter_mode,
+            }
+        session = requests.Session()
+        last_error = None
+        login = None
+        for attempt in range(login_retries):
+        try:
+            login = session.post(
+                f"{base_url}/api/v2/auth/login",
+                data={"username": username, "password": password},
+                timeout=timeout,
+                verify=verify_ssl,
+            )
+            if login.status_code == 200 and login.text.strip().lower().startswith("ok"):
+                break
+            body = login.text.strip()
+            if body:
+                last_error = f"status={login.status_code} body={body}"
+            else:
+                last_error = f"status={login.status_code}"
+        except Exception as exc:
+            last_error = exc
+            if attempt + 1 < login_retries:
+                time.sleep(login_retry_delay)
+        if not login or login.status_code != 200 or "Ok." not in login.text:
+            return {
+                "name": name,
+                "url": base_url,
+                "status": "error",
+                "error": f"login_failed: {last_error}",
+                "counter_mode": counter_mode,
+            }
+        try:
+            info = session.get(
+                f"{base_url}/api/v2/sync/maindata",
+                timeout=timeout,
+                verify=verify_ssl,
+            )
+            payload = info.json()
+        except Exception as exc:
+            return {
+                "name": name,
+                "url": base_url,
+                "status": "error",
+                "error": f"fetch_failed: {exc}",
+                "counter_mode": counter_mode,
+            }
+        state = payload.get("server_state") or {}
+        alltime_ul = state.get("alltime_ul")
+        alltime_dl = state.get("alltime_dl")
+        up_info = state.get("up_info_data")
+        dl_info = state.get("dl_info_data")
+        if counter_mode == "session":
+            upload_bytes = up_info
+            download_bytes = dl_info
+        else:
+            upload_bytes = alltime_ul if alltime_ul is not None else up_info
+            download_bytes = alltime_dl if alltime_dl is not None else dl_info
+        return {
+            "name": name,
+            "url": base_url,
+            "status": "ok",
+            "upload_bytes": upload_bytes,
+            "download_bytes": download_bytes,
+            "upload_speed": state.get("up_info_speed"),
+            "download_speed": state.get("dl_info_speed"),
+            "connection_status": state.get("connection_status"),
+            "counter_mode": counter_mode,
+        }
+
+    def _collect_qbittorrent_stats(self) -> Dict[str, Any]:
+        qb_cfg = self.config.get("qbittorrent", {}) or {}
+        if not qb_cfg.get("enabled"):
+            return {"enabled": False, "instances": []}
+        counter_mode = qb_cfg.get("counter_mode", "alltime")
+        instances = self._normalize_qb_instances(qb_cfg)
+        if not instances:
+            return {"enabled": True, "instances": [], "counter_mode": counter_mode}
+        results = []
+        for instance in instances:
+            instance_mode = instance.get("counter_mode") or counter_mode
+            results.append(self._fetch_qb_instance(instance, instance_mode))
+        return {"enabled": True, "instances": results, "counter_mode": counter_mode}
+
+    @staticmethod
+    def _qb_instance_map(qb_stats: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
+        instances = qb_stats.get("instances") or []
+        return {str(inst.get("name")): inst for inst in instances if inst.get("name")}
+
+    def _build_qb_compare_line(
+        self,
+        server_name: str,
+        outbound_bytes: Optional[float],
+        inbound_bytes: Optional[float],
+        qb_map: Dict[str, Dict[str, Any]],
+    ) -> Optional[str]:
+        if outbound_bytes is None and inbound_bytes is None:
+            return None
+        if not qb_map:
+            return None
+        inst = qb_map.get(server_name)
+        if not inst:
+            return None
+        if inst.get("status") != "ok":
+            return f"🧲 qB: {inst.get('error') or 'error'}"
+        upload_bytes = inst.get("upload_bytes")
+        download_bytes = inst.get("download_bytes")
+        if upload_bytes is None:
+            return None
+        qb_upload_tb = self._bytes_to_tb_precise(float(upload_bytes))
+        qb_download_tb = (
+            self._bytes_to_tb_precise(float(download_bytes)) if download_bytes is not None else None
+        )
+        diff = None
+        if outbound_bytes is not None:
+            outbound_tb = self._bytes_to_tb_precise(float(outbound_bytes))
+            diff = (outbound_tb - qb_upload_tb).quantize(Decimal("0.000"), rounding=ROUND_HALF_UP)
+        diff_in = None
+        if inbound_bytes is not None and qb_download_tb is not None:
+            inbound_tb = self._bytes_to_tb_precise(float(inbound_bytes))
+            diff_in = (inbound_tb - qb_download_tb).quantize(Decimal("0.000"), rounding=ROUND_HALF_UP)
+        lines = [f"🧲 qB 上传: {qb_upload_tb} TB"]
+        if qb_download_tb is not None:
+            lines.append(f"📥 qB 下载: {qb_download_tb} TB")
+        if diff is not None:
+            lines.append(f"📏 上传差值: {diff} TB")
+        if diff_in is not None:
+            lines.append(f"📏 下载差值: {diff_in} TB")
+        return "\n".join(lines)
+
+    @staticmethod
+    def _integrate_time_series(series) -> float:
+        total = 0.0
+        if not series or len(series) < 2:
+            return 0.0
+        for i in range(len(series) - 1):
+            try:
+                value = float(series[i][1])
+                t_curr = datetime.fromisoformat(str(series[i][0]).replace("Z", "+00:00"))
+                t_next = datetime.fromisoformat(str(series[i + 1][0]).replace("Z", "+00:00"))
+                duration = (t_next - t_curr).total_seconds()
+                total += value * duration
+            except Exception:
+                continue
+        return total
+
+    def _get_today_traffic_bytes(self, server_id: int) -> Dict[str, float]:
+        now = datetime.now().astimezone()
+        start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        metrics = self.hetzner.get_server_metrics(server_id, metric_type="traffic", start=start, end=now)
+        time_series = metrics.get("time_series", {}) if isinstance(metrics, dict) else {}
+        out_series = time_series.get("traffic.0.out", [])
+        in_series = time_series.get("traffic.0.in", [])
+        return {
+            "out_bytes": self._integrate_time_series(out_series),
+            "in_bytes": self._integrate_time_series(in_series),
+        }
+
     def _report_state_path(self) -> str:
-        return os.environ.get("REPORT_STATE_PATH", "/opt/hetzner-monitor/report_state.json")
+        return os.environ.get("REPORT_STATE_PATH", "/opt/hetzner-web/report_state.json")
 
     def _config_path(self) -> str:
         return self.config.get('_config_path', 'config.yaml')
@@ -229,15 +440,35 @@ class TelegramBot:
         traffic = result['traffic']
         limit_tb = self._limit_tb()
         outbound_bytes = traffic.get('outbound_bytes')
+        inbound_bytes = traffic.get('inbound_bytes')
         if outbound_bytes is not None:
-            total_tb = self._bytes_to_tb(outbound_bytes)
+            total_tb = self._bytes_to_tb(float(outbound_bytes))
+            outbound_tb_precise = self._bytes_to_tb_precise(float(outbound_bytes))
         else:
             total_tb = (Decimal(traffic['outbound']) / Decimal(1024)).quantize(
                 Decimal("0.001"), rounding=ROUND_HALF_UP
             )
+            outbound_tb_precise = total_tb
 
-        bars = int(usage / 10)
-        progress = "█" * bars + "░" * (10 - bars)
+        if inbound_bytes is not None:
+            inbound_tb = self._bytes_to_tb_precise(float(inbound_bytes))
+        else:
+            inbound_tb = (Decimal(traffic['inbound']) / Decimal(1024)).quantize(
+                Decimal("0.001"), rounding=ROUND_HALF_UP
+            )
+
+        progress = self._progress_bar(usage)
+
+        qb_line = result.get("qb_line")
+        if not qb_line:
+            qb_stats = self._collect_qbittorrent_stats()
+            qb_map = self._qb_instance_map(qb_stats)
+            qb_line = self._build_qb_compare_line(
+                result["server_name"],
+                outbound_bytes,
+                inbound_bytes,
+                qb_map,
+            )
 
         msg = (
             f"{emoji} *流量通知 - {t}%*\n\n"
@@ -246,10 +477,11 @@ class TelegramBot:
             f"`{progress}` {usage:.1f}%\n\n"
             f"💾 已用(出站): *{total_tb} TB* / {limit_tb} TB\n"
             f"📉 剩余: {(limit_tb - total_tb).quantize(Decimal('0.001'), rounding=ROUND_HALF_UP)} TB\n\n"
-            f"📥 入站: {traffic['inbound']:.2f} GB\n"
-            f"📤 出站: {traffic['outbound']:.2f} GB\n"
-            f"📦 出站字节: `{int(outbound_bytes) if outbound_bytes is not None else 'N/A'}`"
+            f"📤 出站: {outbound_tb_precise} TB\n"
+            f"📥 入站: {inbound_tb} TB"
         )
+        if qb_line:
+            msg = f"{msg}\n\n{qb_line}"
         self._send(msg)
 
     def send_exceed_notification(self, result: Dict) -> None:
@@ -372,18 +604,16 @@ class TelegramBot:
                 parts = ["📊 *流量汇总* (出站计费)\n"]
                 for server in servers:
                     sid = server['id']
-                    traffic = self.hetzner.calculate_traffic(sid, days=30)
-                    outbound_bytes = traffic.get('outbound_bytes')
-                    if outbound_bytes is not None:
-                        total_tb = self._bytes_to_tb(outbound_bytes)
-                        usage = float((Decimal(outbound_bytes) / (Decimal(1024) ** 4) / limit_tb) * 100)
-                    else:
-                        total_tb = (Decimal(traffic['outbound']) / Decimal(1024)).quantize(
-                            Decimal("0.001"), rounding=ROUND_HALF_UP
-                        )
-                        usage = float((total_tb / limit_tb) * 100)
+                    detail = self.hetzner.get_server(sid) or {}
+                    outbound = detail.get("outgoing_traffic")
+                    name = detail.get("name") or server.get("name") or sid
+                    if outbound is None or not limit_tb:
+                        parts.append(f"- `{name}`")
+                        continue
+                    total_tb = self._bytes_to_tb(float(outbound))
+                    usage = float((Decimal(outbound) / (Decimal(1024) ** 4) / limit_tb) * 100)
                     parts.append(
-                        f"🖥 *{server['name']}* (`{sid}`)\n"
+                        f"🖥 *{name}* (`{sid}`)\n"
                         f"💾 已用(出站): *{total_tb} TB* / {limit_tb} TB\n"
                         f"📈 使用率: *{usage:.2f}%*"
                     )
@@ -398,37 +628,21 @@ class TelegramBot:
 
             await u.message.reply_text("⏳ 正在获取流量数据...")
 
-            traffic = self.hetzner.calculate_traffic(sid, days=30)
-            outbound_bytes = traffic.get('outbound_bytes')
-            if outbound_bytes is not None:
-                total_tb = self._bytes_to_tb(outbound_bytes)
-                usage = float((Decimal(outbound_bytes) / (Decimal(1024) ** 4) / limit_tb) * 100)
-            else:
-                total_tb = (Decimal(traffic['outbound']) / Decimal(1024)).quantize(
-                    Decimal("0.001"), rounding=ROUND_HALF_UP
-                )
-                usage = float((total_tb / limit_tb) * 100)
-
-            if usage >= 95:
-                emoji = "🚨"
-            elif usage >= 80:
-                emoji = "🔴"
-            elif usage >= 60:
-                emoji = "🟡"
-            else:
-                emoji = "🟢"
+            outbound = server.get("outgoing_traffic")
+            inbound = server.get("ingoing_traffic")
+            total_tb = self._bytes_to_tb(float(outbound)) if outbound is not None else Decimal("0.000")
+            inbound_tb = self._bytes_to_tb(float(inbound)) if inbound is not None else Decimal("0.000")
+            usage = None
+            if limit_tb and outbound is not None:
+                usage = float((Decimal(outbound) / (Decimal(1024) ** 4) / limit_tb) * 100)
+            usage_text = f"{usage:.2f}%" if usage is not None else "N/A"
 
             msg = (
-                f"📊 *流量详情报告*\n\n"
-                f"🖥 服务器: {server['name']}\n"
-                f"🆔 ID: `{sid}`\n\n"
-                f"{emoji} *本月流量:*\n"
+                "📊 *流量详情*\n\n"
+                f"🖥 *{server.get('name')}* (`{sid}`)\n"
                 f"💾 已用(出站): *{total_tb} TB* / {limit_tb} TB\n"
-                f"📈 使用率: *{usage:.2f}%*\n"
-                f"📉 剩余: *{(limit_tb - total_tb).quantize(Decimal('0.001'), rounding=ROUND_HALF_UP)} TB*\n\n"
-                f"📥 入站: {traffic['inbound']:.2f} GB\n"
-                f"📤 出站: {traffic['outbound']:.2f} GB\n"
-                f"📦 出站字节: `{int(outbound_bytes) if outbound_bytes is not None else 'N/A'}`"
+                f"📈 使用率: *{usage_text}*\n"
+                f"📥 入站: {inbound_tb} TB"
             )
             await u.message.reply_text(msg, parse_mode='Markdown')
         except Exception as e:
@@ -442,15 +656,17 @@ class TelegramBot:
                 if not servers:
                     await u.message.reply_text("📭 暂无服务器")
                     return
-                parts = ["📅 *今日流量汇总* (出站计费)\n"]
+                parts = ["📅 *今日流量*\n"]
                 for server in servers:
                     sid = server['id']
-                    today = self.hetzner.get_today_traffic(sid)
-                    outbound_tb = Decimal(today['outbound']) / Decimal(1024)
+                    detail = self.hetzner.get_server(sid) or {}
+                    name = detail.get("name") or server.get("name") or sid
+                    usage = self._get_today_traffic_bytes(sid)
+                    outbound_tb = self._bytes_to_tb_precise(float(usage["out_bytes"]))
+                    inbound_tb = self._bytes_to_tb_precise(float(usage["in_bytes"]))
                     parts.append(
-                        f"🖥 *{server['name']}* (`{sid}`)\n"
-                        f"📤 出站: *{outbound_tb.quantize(Decimal('0.001'), rounding=ROUND_HALF_UP)} TB*\n"
-                        f"📥 入站: {today['inbound']:.2f} GB"
+                        f"🖥 *{name}* (`{sid}`)\n"
+                        f"⬆️ {outbound_tb} TB | ⬇️ {inbound_tb} TB"
                     )
                 await u.message.reply_text("\n\n".join(parts), parse_mode='Markdown')
                 return
@@ -461,15 +677,14 @@ class TelegramBot:
                 await u.message.reply_text("❌ 服务器不存在")
                 return
 
-            today = self.hetzner.get_today_traffic(sid)
+            usage = self._get_today_traffic_bytes(sid)
+            outbound_tb = self._bytes_to_tb_precise(float(usage["out_bytes"]))
+            inbound_tb = self._bytes_to_tb_precise(float(usage["in_bytes"]))
 
             msg = (
-                f"📅 *今日流量分析*\n\n"
-                f"🖥 服务器: {server['name']}\n\n"
-                f"📊 今日统计:\n"
-                f"💾 总计: *{today['total']:.2f} GB*\n"
-                f"📥 入站: {today['inbound']:.2f} GB\n"
-                f"📤 出站: {today['outbound']:.2f} GB"
+                "📅 *今日流量*\n\n"
+                f"🖥 *{server.get('name')}* (`{sid}`)\n"
+                f"⬆️ {outbound_tb} TB | ⬇️ {inbound_tb} TB"
             )
             await u.message.reply_text(msg, parse_mode='Markdown')
         except Exception as e:

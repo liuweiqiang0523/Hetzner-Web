@@ -119,7 +119,7 @@ systemctl --version
 cd /opt/hetzner-web
 
 docker compose up -d --build
-sudo systemctl restart hetzner-monitor.service
+sudo systemctl restart hetzner-web.service
 ```
 
 打开：`http://<你的服务器IP>:1227`
@@ -141,7 +141,7 @@ telegram:
 然后重启 automation：
 
 ```bash
-sudo systemctl restart hetzner-monitor.service
+sudo systemctl restart hetzner-web.service
 ```
 
 ---
@@ -164,8 +164,8 @@ sudo systemctl restart hetzner-monitor.service
 
 一键自检：
 - `docker ps`
-- `sudo systemctl status hetzner-monitor.service`
-- `sudo journalctl -u hetzner-monitor.service -n 50 --no-pager`
+- `sudo systemctl status hetzner-web.service`
+- `sudo journalctl -u hetzner-web.service -n 50 --no-pager`
 
 ---
 

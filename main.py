@@ -281,9 +281,13 @@ def _fetch_qb_instance(instance: Dict[str, Any], counter_mode: str) -> Dict[str,
                 timeout=timeout,
                 verify=verify_ssl,
             )
-            if login.status_code == 200 and "Ok." in login.text:
+            if login.status_code == 200 and login.text.strip().lower().startswith("ok"):
                 break
-            last_error = f"status={login.status_code}"
+            body = login.text.strip()
+            if body:
+                last_error = f"status={login.status_code} body={body}"
+            else:
+                last_error = f"status={login.status_code}"
         except Exception as exc:
             last_error = exc
         if attempt + 1 < login_retries:
@@ -696,7 +700,8 @@ def _compute_cycle_data(
                 rebuilds.append(curr_key)
 
             deltas = _delta_by_name(prev, curr)
-            data = deltas.get(sid, {})
+            name_key = name or str(sid)
+            data = deltas.get(name_key, {})
             total_out = data["out"] if data.get("has_out") else Decimal("0.000")
             cycle_out += total_out
             cycle_out = _quantize_tb(cycle_out)

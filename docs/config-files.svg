@@ -34,5 +34,5 @@
   <text x="85" y="364" class="pill">RESTART</text>
   <text x="80" y="405" class="label">After editing configs</text>
   <text x="80" y="440" class="text">Web: docker compose up -d --build</text>
-  <text x="80" y="465" class="text">Automation: systemctl restart hetzner-monitor.service</text>
+  <text x="80" y="465" class="text">Automation: systemctl restart hetzner-web.service</text>
 </svg>

@@ -1826,6 +1826,12 @@
                 <div class="status">{{ langPack.recentRebuild }}</div>
                 <div class="metric">{{ lastRebuildAt || "—" }}</div>
                 <div class="muted">{{ lastRebuildServer || "—" }}</div>
+                <div v-if="lastRebuildSource" class="muted">{{ langPack.rebuildSource }} {{ lastRebuildSource }}</div>
+              </div>
+              <div class="hero-metric">
+                <div class="status">{{ langPack.rebuildCount }}</div>
+                <div class="metric">{{ rebuildTotal }}</div>
+                <div class="muted">{{ langPack.rebuildAutoLabel }} {{ rebuildAutoTotal }}</div>
               </div>
             </div>
           </div>
@@ -2172,7 +2178,10 @@
             etaWindowDays: 7,
             lastRebuildAt: "",
             lastRebuildServer: "",
+            lastRebuildSource: "",
             rebuildMap: {},
+            rebuildTotal: 0,
+            rebuildAutoTotal: 0,
             peakServer: { name: "", value: "0.000" },
             updatedAt: "",
             error: "",
@@ -2229,6 +2238,9 @@
                 monthDailyAvg: "Daily avg",
                 monthPeak: "Peak",
                 recentRebuild: "♻️ Recent rebuild",
+                rebuildCount: "♻️ Rebuilds",
+                rebuildAutoLabel: "Auto",
+                rebuildSource: "Source",
                 qbTitle: "🧲 qBittorrent · Transfer",
                 qbSubtitle: "Per-server comparison between Hetzner outbound and qBittorrent upload.",
                 qbCounterMode: "Counter mode",
@@ -2342,6 +2354,9 @@
               monthDailyAvg: "本月日均",
               monthPeak: "峰值",
               recentRebuild: "♻️ 最近重建",
+              rebuildCount: "♻️ 重建次数",
+              rebuildAutoLabel: "自动",
+              rebuildSource: "来源",
               qbTitle: "🧲 qBittorrent · 传输",
               qbSubtitle: "逐台对比 Hetzner 出站与 qBittorrent 上传。",
               qbCounterMode: "统计模式",
@@ -2821,6 +2836,10 @@
               this.costPerTb = traffic.cost_per_tb_eur;
             }
             this.rebuildMap = data.rebuilds || {};
+            const rebuildSummary = data.rebuild_summary || {};
+            this.rebuildTotal = rebuildSummary.total || 0;
+            this.rebuildAutoTotal = rebuildSummary.auto_total || 0;
+            this.lastRebuildSource = "";
             const total = this.servers.reduce((sum, s) => sum + parseFloat(s.outbound_tb || 0), 0);
             this.totalOutboundTb = total.toFixed(3);
             const totalIn = this.servers.reduce((sum, s) => sum + parseFloat(s.inbound_tb || 0), 0);
@@ -2839,20 +2858,27 @@
             );
             this.peakServer = peak;
             const idToName = new Map(this.servers.map((s) => [String(s.id), s.name]));
-            const rebuildEntries = Object.entries(this.rebuildMap || {});
-            if (rebuildEntries.length) {
-              rebuildEntries.sort((a, b) => {
-                const da = new Date(a[1].replace(" ", "T"));
-                const db = new Date(b[1].replace(" ", "T"));
-                return da - db;
-              });
-              const [lastId, lastTime] = rebuildEntries[rebuildEntries.length - 1];
-              const lastName = idToName.get(String(lastId));
-              this.lastRebuildAt = lastTime;
-              this.lastRebuildServer = lastName ? `${lastName} (${lastId})` : String(lastId);
+            const rebuildLast = rebuildSummary.last || null;
+            if (rebuildLast && rebuildLast.time) {
+              this.lastRebuildAt = rebuildLast.time;
+              this.lastRebuildServer = rebuildLast.server || "—";
+              this.lastRebuildSource = rebuildLast.source || "";
             } else {
-              this.lastRebuildAt = "";
-              this.lastRebuildServer = "";
+              const rebuildEntries = Object.entries(this.rebuildMap || {});
+              if (rebuildEntries.length) {
+                rebuildEntries.sort((a, b) => {
+                  const da = new Date(a[1].replace(" ", "T"));
+                  const db = new Date(b[1].replace(" ", "T"));
+                  return da - db;
+                });
+                const [lastId, lastTime] = rebuildEntries[rebuildEntries.length - 1];
+                const lastName = idToName.get(String(lastId));
+                this.lastRebuildAt = lastTime;
+                this.lastRebuildServer = lastName ? `${lastName} (${lastId})` : String(lastId);
+              } else {
+                this.lastRebuildAt = "";
+                this.lastRebuildServer = "";
+              }
             }
             const qb = data.qbittorrent || {};
             this.qbEnabled = qb.enabled || false;
@@ -3523,6 +3549,16 @@
                 ],
               },
               rebuilds: { "117712568": "2026-01-16 12:30:00" },
+              rebuild_summary: {
+                total: 3,
+                auto_total: 2,
+                last: {
+                  time: "2026-01-16 12:30:00",
+                  server: "cx43-1",
+                  source: "流量超标自动重建",
+                  server_id: "117712568",
+                },
+              },
             };
           },
           _mockHourlyPayload() {

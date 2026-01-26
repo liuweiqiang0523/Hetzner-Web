@@ -70,6 +70,53 @@ def _save_report_state(state: Dict[str, Any]) -> None:
         json.dump(state, f)
 
 
+def _record_rebuild_event(server_id: int, server_name: str, source: str) -> None:
+    state = _load_report_state()
+    stats = state.get("rebuild_stats", {}) or {}
+    key = server_name or str(server_id)
+    entry = stats.get(key, {}) or {}
+    entry["count"] = int(entry.get("count") or 0) + 1
+    now = _now_local()
+    entry["last_time"] = now.strftime("%Y-%m-%d %H:%M:%S")
+    entry["last_time_iso"] = now.isoformat()
+    entry["last_source"] = source
+    entry["last_server_id"] = str(server_id)
+    sources = entry.get("sources", {}) or {}
+    sources[source] = int(sources.get(source) or 0) + 1
+    entry["sources"] = sources
+    stats[key] = entry
+    state["rebuild_stats"] = stats
+    _save_report_state(state)
+
+
+def _summarize_rebuild_stats(state: Dict[str, Any]) -> Dict[str, Any]:
+    stats = state.get("rebuild_stats", {}) or {}
+    total = 0
+    auto_total = 0
+    last_event = None
+    last_time = None
+    for name, entry in stats.items():
+        total += int(entry.get("count") or 0)
+        sources = entry.get("sources") or {}
+        auto_total += int(sources.get("流量超标自动重建") or 0)
+        iso = entry.get("last_time_iso")
+        if not iso:
+            continue
+        try:
+            parsed = datetime.fromisoformat(iso)
+        except Exception:
+            continue
+        if last_time is None or parsed > last_time:
+            last_time = parsed
+            last_event = {
+                "time": entry.get("last_time"),
+                "server": name,
+                "source": entry.get("last_source"),
+                "server_id": entry.get("last_server_id"),
+            }
+    return {"total": total, "auto_total": auto_total, "last": last_event, "stats": stats}
+
+
 def _bytes_to_tb(value_bytes: float) -> Decimal:
     return (Decimal(value_bytes) / (Decimal(1024) ** 4)).quantize(
         Decimal("0.001"), rounding=ROUND_HALF_UP
@@ -1293,6 +1340,16 @@ def _build_manual_report(config: Dict[str, Any], client: "HetznerClient") -> str
             f"📥 入站: {inbound_tb} TB"
         )
 
+    rebuild_summary = _summarize_rebuild_stats(state)
+    rebuild_total = rebuild_summary.get("total") or 0
+    rebuild_auto = rebuild_summary.get("auto_total") or 0
+    last_rebuild = rebuild_summary.get("last") or {}
+    parts.append(f"♻️ 重建统计: {rebuild_total} 次（自动 {rebuild_auto}）")
+    if last_rebuild.get("time"):
+        parts.append(
+            f"🕒 最近重建: {last_rebuild.get('time')} · {last_rebuild.get('server')} ({last_rebuild.get('source')})"
+        )
+
     parts.append(_format_hourly_report(state.get("hourly", {})))
     state["last_time"] = now.strftime("%Y-%m-%d %H:%M")
     state["servers"] = current_snapshot
@@ -1339,6 +1396,8 @@ def _perform_rebuild(
         if new_id:
             _update_config_mapping(config, str(server_id), str(new_id))
             _save_yaml(CONFIG_PATH, config)
+        record_id = int(new_id) if new_id else server_id
+        _record_rebuild_event(record_id, server_name, source)
 
         cf_cfg = config.get("cloudflare", {})
         record_map = cf_cfg.get("record_map", {}) or {}
@@ -1396,7 +1455,8 @@ def _perform_rebuild(
                 chat_id,
                 "\n".join(lines),
             )
-        return {"success": True, "dns": dns_result}
+        result["dns"] = dns_result
+        return result
     finally:
         lock.release()
 
@@ -1907,6 +1967,16 @@ def _handle_bot_command(text: str, config: Dict[str, Any], client: "HetznerClien
         telegram_cfg = config.get("telegram", {})
         levels = _parse_alert_levels(telegram_cfg.get("notify_levels"))
         notify_text = f"{', '.join(str(x) for x in levels)}%" if levels else "-"
+        state = _load_report_state()
+        rebuild_summary = _summarize_rebuild_stats(state)
+        rebuild_total = rebuild_summary.get("total") or 0
+        rebuild_auto = rebuild_summary.get("auto_total") or 0
+        last_rebuild = rebuild_summary.get("last") or {}
+        last_rebuild_text = (
+            f"{last_rebuild.get('time')} · {last_rebuild.get('server')} ({last_rebuild.get('source')})"
+            if last_rebuild.get("time")
+            else "暂无"
+        )
         return (
             "📊 *系统状态概览*\n\n"
             f"🖥 服务器总数: {total} 台\n"
@@ -1914,6 +1984,8 @@ def _handle_bot_command(text: str, config: Dict[str, Any], client: "HetznerClien
             f"🟡 启动中: {starting} 台\n"
             f"🔴 已停止: {stopped} 台\n"
             f"⚪ 未知: {unknown} 台\n\n"
+            f"♻️ 重建次数: {rebuild_total} (自动 {rebuild_auto})\n"
+            f"🕒 最近重建: {last_rebuild_text}\n\n"
             f"🔔 通知间隔: {notify_text}\n"
             "✅ 监控系统正常运行\n\n"
             "🖥 服务器明细:\n"
@@ -2507,6 +2579,7 @@ def api_servers(request: Request) -> JSONResponse:
     tracking = _compute_tracking_totals(hourly, web_cfg.get("tracking_start"))
     name_map = {str(s["id"]): s.get("name") or str(s["id"]) for s in servers}
     rebuilds = _detect_last_rebuilds(state.get("hourly", {}), name_map)
+    rebuild_summary = _summarize_rebuild_stats(state)
     qb_stats = _collect_qbittorrent_stats(config)
     return JSONResponse(
         {
@@ -2520,6 +2593,7 @@ def api_servers(request: Request) -> JSONResponse:
             },
             "qbittorrent": qb_stats,
             "rebuilds": rebuilds,
+            "rebuild_summary": rebuild_summary,
         }
     )
 
@@ -2531,21 +2605,12 @@ async def api_rebuild(request: Request) -> JSONResponse:
     server_id = int(payload.get("server_id"))
     config = _load_yaml(CONFIG_PATH)
     client = HetznerClient(config["hetzner"]["api_token"])
-    result = client.rebuild_server(server_id, config)
+    detail = client.get_server(server_id) or {}
+    name = detail.get("name") or str(server_id)
+    result = _perform_rebuild(server_id, name, config, "Web API", client)
     if not result.get("success"):
         return JSONResponse(result, status_code=500)
-    cf_cfg = config.get("cloudflare", {})
-    record_map = cf_cfg.get("record_map", {})
-    record_name = record_map.get(str(server_id))
-    dns = None
-    if record_name:
-        dns = client.update_cloudflare_a_record(
-            cf_cfg.get("api_token", ""),
-            cf_cfg.get("zone_id", ""),
-            record_name,
-            result.get("new_ip", ""),
-        )
-    return JSONResponse({"rebuild": result, "dns": dns})
+    return JSONResponse({"rebuild": result, "dns": result.get("dns")})
 
 
 @app.post("/api/dns_check")

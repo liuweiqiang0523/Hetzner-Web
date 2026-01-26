@@ -1826,7 +1826,6 @@
                 <div class="status">{{ langPack.recentRebuild }}</div>
                 <div class="metric">{{ lastRebuildAt || "—" }}</div>
                 <div class="muted">{{ lastRebuildServer || "—" }}</div>
-                <div v-if="lastRebuildSource" class="muted">{{ langPack.rebuildSource }} {{ lastRebuildSource }}</div>
               </div>
               <div class="hero-metric">
                 <div class="status">{{ langPack.rebuildCount }}</div>
@@ -2178,7 +2177,6 @@
             etaWindowDays: 7,
             lastRebuildAt: "",
             lastRebuildServer: "",
-            lastRebuildSource: "",
             rebuildMap: {},
             rebuildTotal: 0,
             rebuildAutoTotal: 0,
@@ -2240,7 +2238,6 @@
                 recentRebuild: "♻️ Recent rebuild",
                 rebuildCount: "♻️ Rebuilds",
                 rebuildAutoLabel: "Auto",
-                rebuildSource: "Source",
                 qbTitle: "🧲 qBittorrent · Transfer",
                 qbSubtitle: "Per-server comparison between Hetzner outbound and qBittorrent upload.",
                 qbCounterMode: "Counter mode",
@@ -2356,7 +2353,6 @@
               recentRebuild: "♻️ 最近重建",
               rebuildCount: "♻️ 重建次数",
               rebuildAutoLabel: "自动",
-              rebuildSource: "来源",
               qbTitle: "🧲 qBittorrent · 传输",
               qbSubtitle: "逐台对比 Hetzner 出站与 qBittorrent 上传。",
               qbCounterMode: "统计模式",
@@ -2839,7 +2835,6 @@
             const rebuildSummary = data.rebuild_summary || {};
             this.rebuildTotal = rebuildSummary.total || 0;
             this.rebuildAutoTotal = rebuildSummary.auto_total || 0;
-            this.lastRebuildSource = "";
             const total = this.servers.reduce((sum, s) => sum + parseFloat(s.outbound_tb || 0), 0);
             this.totalOutboundTb = total.toFixed(3);
             const totalIn = this.servers.reduce((sum, s) => sum + parseFloat(s.inbound_tb || 0), 0);
@@ -2862,7 +2857,6 @@
             if (rebuildLast && rebuildLast.time) {
               this.lastRebuildAt = rebuildLast.time;
               this.lastRebuildServer = rebuildLast.server || "—";
-              this.lastRebuildSource = rebuildLast.source || "";
             } else {
               const rebuildEntries = Object.entries(this.rebuildMap || {});
               if (rebuildEntries.length) {

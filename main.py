@@ -3,6 +3,7 @@ from __future__ import annotations
 import base64
 import json
 import os
+import shutil
 import socket
 import threading
 import time
@@ -22,6 +23,8 @@ STATIC_DIR = os.path.join(APP_ROOT, "static")
 CONFIG_PATH = os.environ.get("HETZNER_CONFIG_PATH", "/app/config.yaml")
 WEB_CONFIG_PATH = os.environ.get("WEB_CONFIG_PATH", "/app/web_config.json")
 REPORT_STATE_PATH = os.environ.get("REPORT_STATE_PATH", "/app/report_state.json")
+REPORT_STATE_BACKUP_DIR = os.environ.get("REPORT_STATE_BACKUP_DIR", "/app/report_state_backups")
+REPORT_STATE_BACKUP_KEEP = 3
 
 ALERT_STATE: Dict[str, Dict[str, Optional[float]]] = {}
 REBUILD_LOCKS: Dict[str, threading.Lock] = {}
@@ -66,8 +69,32 @@ def _load_report_state() -> Dict[str, Any]:
 
 
 def _save_report_state(state: Dict[str, Any]) -> None:
+    _backup_report_state()
     with open(REPORT_STATE_PATH, "w") as f:
         json.dump(state, f)
+
+
+def _backup_report_state() -> None:
+    if not os.path.exists(REPORT_STATE_PATH):
+        return
+    try:
+        os.makedirs(REPORT_STATE_BACKUP_DIR, exist_ok=True)
+        ts = _now_local().strftime("%Y%m%d%H%M%S")
+        filename = f"report_state.json.bak.{ts}"
+        dst = os.path.join(REPORT_STATE_BACKUP_DIR, filename)
+        shutil.copyfile(REPORT_STATE_PATH, dst)
+        backups = sorted(
+            name
+            for name in os.listdir(REPORT_STATE_BACKUP_DIR)
+            if name.startswith("report_state.json.bak.")
+        )
+        if len(backups) > REPORT_STATE_BACKUP_KEEP:
+            for name in backups[: -REPORT_STATE_BACKUP_KEEP]:
+                path = os.path.join(REPORT_STATE_BACKUP_DIR, name)
+                if os.path.isfile(path):
+                    os.remove(path)
+    except Exception:
+        pass
 
 
 def _backfill_rebuild_stats(state: Dict[str, Any]) -> Dict[str, Any]:

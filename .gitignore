@@ -4,4 +4,5 @@ __pycache__/
 config.yaml
 web_config.json
 report_state.json
+report_state_backups/
 .env

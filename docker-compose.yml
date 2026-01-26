@@ -7,9 +7,11 @@ services:
     restart: unless-stopped
     environment:
       TZ: Asia/Shanghai
+      REPORT_STATE_BACKUP_DIR: /app/report_state_backups
     ports:
       - "1227:1227"
     volumes:
       - ./config.yaml:/app/config.yaml
       - ./report_state.json:/app/report_state.json
+      - ./report_state_backups:/app/report_state_backups
       - ./web_config.json:/app/web_config.json:ro

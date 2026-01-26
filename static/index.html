@@ -2539,6 +2539,18 @@
               Authorization: "Basic " + btoa(this.username + ":" + this.password),
             };
           },
+          setQbFromPayload(qb) {
+            this.qbEnabled = qb.enabled || false;
+            this.qbInstances = qb.instances || [];
+            this.qbCounterMode = qb.counter_mode || "";
+            this.qbTotalUploadBytes = qb.total_upload_bytes || 0;
+            this.qbTotalDownloadBytes = qb.total_download_bytes || 0;
+            this.qbTotalUploadTb = this.formatBytesTb(this.qbTotalUploadBytes);
+            this.qbTotalDownloadTb = this.formatBytesTb(this.qbTotalDownloadBytes);
+            if (!this.qbEnabled) {
+              this.qbInstances = [];
+            }
+          },
           _withDemoDays(days) {
             if (!Array.isArray(days)) return days;
             const params = new URLSearchParams(window.location.search);
@@ -2874,14 +2886,11 @@
                 this.lastRebuildServer = "";
               }
             }
-            const qb = data.qbittorrent || {};
-            this.qbEnabled = qb.enabled || false;
-            this.qbInstances = qb.instances || [];
-            this.qbCounterMode = qb.counter_mode || "";
-            this.qbTotalUploadBytes = qb.total_upload_bytes || 0;
-            this.qbTotalDownloadBytes = qb.total_download_bytes || 0;
-            this.qbTotalUploadTb = this.formatBytesTb(this.qbTotalUploadBytes);
-            this.qbTotalDownloadTb = this.formatBytesTb(this.qbTotalDownloadBytes);
+            if (this.demoMode) {
+              this.setQbFromPayload(data.qbittorrent || {});
+            } else {
+              await this.refreshQb();
+            }
             const qbMap = new Map(
               (this.qbInstances || []).map((inst) => [String(inst.name || ""), inst])
             );
@@ -2922,6 +2931,19 @@
             });
             await this.fetchHourly();
             await this.fetchDaily();
+          },
+          async refreshQb() {
+            try {
+              const res = await fetch("/api/qb", { headers: this.authHeader() });
+              if (!res.ok) {
+                this.setQbFromPayload({ enabled: false, instances: [] });
+                return;
+              }
+              const qb = await res.json();
+              this.setQbFromPayload(qb || {});
+            } catch (e) {
+              this.setQbFromPayload({ enabled: false, instances: [] });
+            }
           },
           async fetchHourly() {
             let data;

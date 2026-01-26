@@ -2635,7 +2635,6 @@ def api_servers(request: Request) -> JSONResponse:
     name_map = {str(s["id"]): s.get("name") or str(s["id"]) for s in servers}
     rebuilds = _detect_last_rebuilds(state.get("hourly", {}), name_map)
     rebuild_summary = _summarize_rebuild_stats(state)
-    qb_stats = _collect_qbittorrent_stats(config)
     return JSONResponse(
         {
             "servers": rows,
@@ -2646,11 +2645,17 @@ def api_servers(request: Request) -> JSONResponse:
                 "limit_tb": str(limit_tb) if limit_tb is not None else None,
                 "cost_per_tb_eur": 1,
             },
-            "qbittorrent": qb_stats,
             "rebuilds": rebuilds,
             "rebuild_summary": rebuild_summary,
         }
     )
+
+
+@app.get("/api/qb")
+def api_qb(request: Request) -> JSONResponse:
+    _require_auth(request)
+    config = _load_yaml(CONFIG_PATH)
+    return JSONResponse(_collect_qbittorrent_stats(config))
 
 
 @app.post("/api/rebuild")

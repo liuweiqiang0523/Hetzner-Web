@@ -27,6 +27,11 @@ ALERT_STATE: Dict[str, Dict[str, Optional[float]]] = {}
 REBUILD_LOCKS: Dict[str, threading.Lock] = {}
 SCHEDULE_STATE: Dict[str, Any] = {"last_daily_report": None, "last_task_runs": {}}
 BOT_STATE: Dict[str, Any] = {"update_offset": 0, "last_message_id": None, "last_message_text": None}
+QB_COOLDOWN_UNTIL: Dict[str, float] = {}
+QB_REBUILD_COOLDOWN_SECONDS = 300
+CF_RETRY_ATTEMPTS = 3
+CF_RETRY_DELAY_SECONDS = 5
+CF_REBUILD_SYNC_DELAY_SECONDS = 90
 
 
 def _load_yaml(path: str) -> Dict[str, Any]:
@@ -88,6 +93,8 @@ def _normalize_qb_instances(qb_cfg: Dict[str, Any]) -> List[Dict[str, Any]]:
                     "password": qb_cfg.get("password"),
                     "verify_ssl": qb_cfg.get("verify_ssl", True),
                     "timeout_seconds": qb_cfg.get("timeout_seconds"),
+                    "login_retries": qb_cfg.get("login_retries"),
+                    "login_retry_delay": qb_cfg.get("login_retry_delay"),
                     "counter_mode": qb_cfg.get("counter_mode"),
                 }
             ]
@@ -108,6 +115,8 @@ def _normalize_qb_instances(qb_cfg: Dict[str, Any]) -> List[Dict[str, Any]]:
                 "password": entry.get("password"),
                 "verify_ssl": entry.get("verify_ssl", True),
                 "timeout_seconds": entry.get("timeout_seconds"),
+                "login_retries": entry.get("login_retries"),
+                "login_retry_delay": entry.get("login_retry_delay"),
                 "counter_mode": entry.get("counter_mode"),
             }
         )
@@ -120,6 +129,8 @@ def _fetch_qb_instance(instance: Dict[str, Any], counter_mode: str) -> Dict[str,
     username = instance.get("username") or ""
     password = instance.get("password") or ""
     timeout = float(instance.get("timeout_seconds") or 6)
+    login_retries = max(1, int(instance.get("login_retries") or 3))
+    login_retry_delay = max(0, float(instance.get("login_retry_delay") or 3))
     verify_ssl = instance.get("verify_ssl", True)
     if not base_url or not username or not password:
         return {
@@ -129,28 +140,40 @@ def _fetch_qb_instance(instance: Dict[str, Any], counter_mode: str) -> Dict[str,
             "error": "missing_credentials",
             "counter_mode": counter_mode,
         }
-    session = requests.Session()
-    try:
-        login = session.post(
-            f"{base_url}/api/v2/auth/login",
-            data={"username": username, "password": password},
-            timeout=timeout,
-            verify=verify_ssl,
-        )
-    except Exception as exc:
+    now = time.time()
+    cooldown_until = QB_COOLDOWN_UNTIL.get(name) or QB_COOLDOWN_UNTIL.get(base_url)
+    if cooldown_until and now < cooldown_until:
         return {
             "name": name,
             "url": base_url,
             "status": "error",
-            "error": f"login_failed: {exc}",
+            "error": "cooldown",
             "counter_mode": counter_mode,
         }
-    if login.status_code != 200 or "Ok." not in login.text:
+    session = requests.Session()
+    login = None
+    last_error = None
+    for attempt in range(login_retries):
+        try:
+            login = session.post(
+                f"{base_url}/api/v2/auth/login",
+                data={"username": username, "password": password},
+                timeout=timeout,
+                verify=verify_ssl,
+            )
+            if login.status_code == 200 and "Ok." in login.text:
+                break
+            last_error = f"status={login.status_code}"
+        except Exception as exc:
+            last_error = exc
+        if attempt + 1 < login_retries:
+            time.sleep(login_retry_delay)
+    if not login or login.status_code != 200 or "Ok." not in login.text:
         return {
             "name": name,
             "url": base_url,
             "status": "error",
-            "error": "login_failed",
+            "error": f"login_failed: {last_error}",
             "counter_mode": counter_mode,
         }
     try:
@@ -196,6 +219,12 @@ def _collect_qbittorrent_stats(config: Dict[str, Any]) -> Dict[str, Any]:
     qb_cfg = config.get("qbittorrent", {}) or {}
     if not qb_cfg.get("enabled"):
         return {"enabled": False, "instances": []}
+    global QB_REBUILD_COOLDOWN_SECONDS
+    if qb_cfg.get("rebuild_cooldown_seconds") is not None:
+        try:
+            QB_REBUILD_COOLDOWN_SECONDS = max(0, int(qb_cfg.get("rebuild_cooldown_seconds")))
+        except Exception:
+            QB_REBUILD_COOLDOWN_SECONDS = 300
     counter_mode = qb_cfg.get("counter_mode", "alltime")
     instances = _normalize_qb_instances(qb_cfg)
     if not instances:
@@ -304,8 +333,9 @@ def _telegram_inline_keyboard(menu: str) -> Dict[str, Any]:
             ],
             [
                 {"text": "✅ DNS检查 ID", "callback_data": "prompt:/dnscheck"},
-                {"text": "❓ 帮助", "callback_data": "cmd:/help"},
+                {"text": "🔁 DNS同步", "callback_data": "cmd:/dnsync"},
             ],
+            [{"text": "❓ 帮助", "callback_data": "cmd:/help"}],
             [{"text": "⬅️ 返回", "callback_data": "menu:root"}],
         ]
     elif menu == "control":
@@ -392,6 +422,7 @@ def _map_telegram_shortcut(text: str) -> str:
         "📦 快照列表": "/snapshots",
         "🔧 DNS测试 ID": "/dnstest",
         "✅ DNS检查 ID": "/dnscheck",
+        "🔁 DNS同步": "/dnsync",
         "⏰ 定时状态": "/schedulestatus",
         "✅ 开启定时": "/scheduleon",
         "⏸️ 关闭定时": "/scheduleoff",
@@ -414,6 +445,7 @@ def _map_telegram_shortcut(text: str) -> str:
         "📅 今日流量": "/today",
         "🔧 DNS测试": "/dnstest",
         "✅ DNS检查": "/dnscheck",
+        "🔁 DNS同步": "/dnsync",
         "🧩 单台建机": "/createfromsnapshot",
         "▶️ 启动服务器": "/startserver",
         "⏸️ 停止服务器": "/stopserver",
@@ -811,7 +843,13 @@ class HetznerClient:
         }
 
     def update_cloudflare_a_record(
-        self, api_token: str, zone_id: str, record_name: str, ip: str, attempts: int = 3
+        self,
+        api_token: str,
+        zone_id: str,
+        record_name: str,
+        ip: str,
+        attempts: int = 3,
+        delay_seconds: float = 3,
     ) -> Dict[str, Any]:
         last_error: Optional[Exception] = None
         for _ in range(attempts):
@@ -843,7 +881,8 @@ class HetznerClient:
                 return {"success": True}
             except Exception as e:
                 last_error = e
-                time.sleep(3)
+                if delay_seconds > 0:
+                    time.sleep(delay_seconds)
         return {"success": False, "error": str(last_error)}
 
 
@@ -870,6 +909,20 @@ def _require_auth(request: Request) -> None:
     user, pwd = auth
     if user != cfg.get("username") or pwd != cfg.get("password"):
         raise HTTPException(status_code=401, detail="Unauthorized")
+
+
+def _parse_int_or_default(value: Any, default: int) -> int:
+    try:
+        return int(value)
+    except Exception:
+        return default
+
+
+def _parse_float_or_default(value: Any, default: float) -> float:
+    try:
+        return float(value)
+    except Exception:
+        return default
 
 
 def _parse_alert_levels(raw_levels: Any) -> List[int]:
@@ -1279,10 +1332,23 @@ def _perform_rebuild(
                     f"❌ *重建失败*\\n\\n错误: {result.get('error')}",
                 )
             return result
+        if QB_REBUILD_COOLDOWN_SECONDS > 0:
+            QB_COOLDOWN_UNTIL[server_name] = time.time() + QB_REBUILD_COOLDOWN_SECONDS
+
+        new_id = result.get("new_server_id")
+        if new_id:
+            _update_config_mapping(config, str(server_id), str(new_id))
+            _save_yaml(CONFIG_PATH, config)
 
         cf_cfg = config.get("cloudflare", {})
-        record_cfg = (cf_cfg.get("record_map", {}) or {}).get(str(server_id))
+        record_map = cf_cfg.get("record_map", {}) or {}
+        record_cfg = record_map.get(str(server_id)) or record_map.get(server_name)
         resolved = _resolve_cf_record(record_cfg, cf_cfg.get("zone_id", ""), cf_cfg.get("api_token", ""))
+        attempts = _parse_int_or_default(cf_cfg.get("update_retries"), CF_RETRY_ATTEMPTS)
+        delay_seconds = _parse_float_or_default(cf_cfg.get("update_retry_delay"), CF_RETRY_DELAY_SECONDS)
+        sync_delay = _parse_int_or_default(
+            cf_cfg.get("rebuild_sync_delay_seconds"), CF_REBUILD_SYNC_DELAY_SECONDS
+        )
         dns_result = None
         if resolved:
             dns_result = client.update_cloudflare_a_record(
@@ -1290,7 +1356,18 @@ def _perform_rebuild(
                 resolved["zone_id"],
                 resolved["record"],
                 result.get("new_ip", ""),
+                attempts=attempts,
+                delay_seconds=delay_seconds,
             )
+            if sync_delay > 0:
+                _schedule_cf_rebuild_sync(
+                    client,
+                    resolved,
+                    result.get("new_ip", ""),
+                    attempts,
+                    delay_seconds,
+                    sync_delay,
+                )
         if telegram_cfg.get("enabled") and bot_token and chat_id:
             dns_text = ""
             verify_text = ""
@@ -1324,6 +1401,32 @@ def _perform_rebuild(
         lock.release()
 
 
+def _schedule_cf_rebuild_sync(
+    client: "HetznerClient",
+    resolved: Dict[str, str],
+    ip: str,
+    attempts: int,
+    delay_seconds: float,
+    sync_delay: int,
+) -> None:
+    if not ip or sync_delay <= 0:
+        return
+
+    def _worker() -> None:
+        time.sleep(sync_delay)
+        client.update_cloudflare_a_record(
+            resolved["api_token"],
+            resolved["zone_id"],
+            resolved["record"],
+            ip,
+            attempts=attempts,
+            delay_seconds=delay_seconds,
+        )
+
+    thread = threading.Thread(target=_worker, daemon=True)
+    thread.start()
+
+
 def _sync_cloudflare_records(config: Dict[str, Any], client: "HetznerClient") -> Dict[str, int]:
     cf_cfg = config.get("cloudflare", {})
     if not cf_cfg.get("sync_on_start"):
@@ -1331,6 +1434,8 @@ def _sync_cloudflare_records(config: Dict[str, Any], client: "HetznerClient") ->
     record_map = cf_cfg.get("record_map", {}) or {}
     if not record_map:
         return {"updated": 0, "skipped": 0}
+    attempts = _parse_int_or_default(cf_cfg.get("update_retries"), CF_RETRY_ATTEMPTS)
+    delay_seconds = _parse_float_or_default(cf_cfg.get("update_retry_delay"), CF_RETRY_DELAY_SECONDS)
     servers = client.get_servers()
     updated = 0
     skipped = 0
@@ -1353,7 +1458,12 @@ def _sync_cloudflare_records(config: Dict[str, Any], client: "HetznerClient") ->
             skipped += 1
             continue
         result = client.update_cloudflare_a_record(
-            resolved["api_token"], resolved["zone_id"], resolved["record"], ip
+            resolved["api_token"],
+            resolved["zone_id"],
+            resolved["record"],
+            ip,
+            attempts=attempts,
+            delay_seconds=delay_seconds,
         )
         if result.get("success"):
             updated += 1
@@ -1400,6 +1510,8 @@ def _update_config_mapping(config: Dict[str, Any], old_id: str, new_id: str) -> 
 
     cf_cfg = config.get("cloudflare", {}) or {}
     record_map = cf_cfg.get("record_map", {}) or {}
+    attempts = _parse_int_or_default(cf_cfg.get("update_retries"), CF_RETRY_ATTEMPTS)
+    delay_seconds = _parse_float_or_default(cf_cfg.get("update_retry_delay"), CF_RETRY_DELAY_SECONDS)
     if old_id in record_map:
         record_map[new_id] = record_map[old_id]
         record_map.pop(old_id, None)
@@ -1449,7 +1561,12 @@ def _create_from_snapshot_map(config: Dict[str, Any], client: "HetznerClient") -
             resolved = _resolve_cf_record(record_cfg, cf_cfg.get("zone_id", ""), cf_cfg.get("api_token", ""))
             if resolved and new_ip:
                 client.update_cloudflare_a_record(
-                    resolved["api_token"], resolved["zone_id"], resolved["record"], new_ip
+                    resolved["api_token"],
+                    resolved["zone_id"],
+                    resolved["record"],
+                    new_ip,
+                    attempts=attempts,
+                    delay_seconds=delay_seconds,
                 )
 
 
@@ -1710,7 +1827,8 @@ def _handle_bot_command(text: str, config: Dict[str, Any], client: "HetznerClien
             "/reportstatus - 📋 上次汇报时间\n"
             "/reportreset - ♻️ 重置汇报区间\n"
             "/dnstest ID - 🔧 测试DNS更新\n"
-            "/dnscheck ID - ✅ DNS解析检查\n\n"
+            "/dnscheck ID - ✅ DNS解析检查\n"
+            "/dnsync - 🔁 同步DNS记录\n\n"
             "🔧 控制类:\n"
             "/startserver <ID> - ▶️ 启动服务器\n"
             "/stopserver <ID> - ⏸️ 停止服务器\n"
@@ -1904,13 +2022,21 @@ def _handle_bot_command(text: str, config: Dict[str, Any], client: "HetznerClien
         if not detail:
             return "❌ 服务器不存在"
         cf_cfg = config.get("cloudflare", {}) or {}
-        record_cfg = (cf_cfg.get("record_map", {}) or {}).get(str(sid))
+        record_map = cf_cfg.get("record_map", {}) or {}
+        record_cfg = record_map.get(str(sid)) or record_map.get(detail.get("name"))
         resolved = _resolve_cf_record(record_cfg, cf_cfg.get("zone_id", ""), cf_cfg.get("api_token", ""))
         ip = detail.get("public_net", {}).get("ipv4", {}).get("ip")
         if not resolved or not ip:
             return "❌ DNS 配置缺失"
+        attempts = _parse_int_or_default(cf_cfg.get("update_retries"), CF_RETRY_ATTEMPTS)
+        delay_seconds = _parse_float_or_default(cf_cfg.get("update_retry_delay"), CF_RETRY_DELAY_SECONDS)
         result = client.update_cloudflare_a_record(
-            resolved["api_token"], resolved["zone_id"], resolved["record"], ip
+            resolved["api_token"],
+            resolved["zone_id"],
+            resolved["record"],
+            ip,
+            attempts=attempts,
+            delay_seconds=delay_seconds,
         )
         if result.get("success"):
             return f"✅ DNS已更新: {resolved['record']} -> {ip}"

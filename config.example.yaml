@@ -9,6 +9,7 @@ traffic:
 qbittorrent:
   enabled: false
   counter_mode: "alltime" # "alltime" or "session"
+  rebuild_cooldown_seconds: 300
   instances:
     - name: "qb-main"
       url: "http://127.0.0.1:8080"
@@ -16,6 +17,8 @@ qbittorrent:
       password: "adminadmin"
       verify_ssl: true
       timeout_seconds: 6
+      login_retries: 3
+      login_retry_delay: 3
 
 scheduler:
   enabled: false
@@ -33,6 +36,9 @@ cloudflare:
   api_token: "YOUR_CLOUDFLARE_API_TOKEN"
   zone_id: "YOUR_CLOUDFLARE_ZONE_ID"
   sync_on_start: false
+  update_retries: 3
+  update_retry_delay: 5
+  rebuild_sync_delay_seconds: 90
   record_map:
     "SERVER_ID_1": "server-a.example.com"
     "SERVER_ID_2": "server-b.example.com"

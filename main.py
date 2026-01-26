@@ -2586,6 +2586,9 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 @app.on_event("startup")
 def _start_traffic_monitor() -> None:
+    if os.environ.get("HETZNER_WEB_DISABLE_WORKERS", "").lower() in ("1", "true", "yes"):
+        print("[info] background workers disabled by HETZNER_WEB_DISABLE_WORKERS")
+        return
     def _backfill_wrapper() -> None:
         try:
             state = _load_report_state()

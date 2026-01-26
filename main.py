@@ -2017,7 +2017,7 @@ def _handle_bot_command(text: str, config: Dict[str, Any], client: "HetznerClien
         rebuild_auto = rebuild_summary.get("auto_total") or 0
         last_rebuild = rebuild_summary.get("last") or {}
         last_rebuild_text = (
-            f"{last_rebuild.get('time')} · {last_rebuild.get('server')} ({last_rebuild.get('source')})"
+            f"{last_rebuild.get('time')} · {last_rebuild.get('server')}"
             if last_rebuild.get("time")
             else "暂无"
         )

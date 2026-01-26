@@ -79,9 +79,11 @@ def _backup_report_state() -> None:
         return
     try:
         os.makedirs(REPORT_STATE_BACKUP_DIR, exist_ok=True)
-        ts = _now_local().strftime("%Y%m%d%H%M%S")
+        ts = _now_local().strftime("%Y%m%d")
         filename = f"report_state.json.bak.{ts}"
         dst = os.path.join(REPORT_STATE_BACKUP_DIR, filename)
+        if os.path.exists(dst):
+            return
         shutil.copyfile(REPORT_STATE_PATH, dst)
         backups = sorted(
             name

@@ -70,6 +70,50 @@ def _save_report_state(state: Dict[str, Any]) -> None:
         json.dump(state, f)
 
 
+def _backfill_rebuild_stats(state: Dict[str, Any]) -> Dict[str, Any]:
+    if state.get("rebuild_backfilled"):
+        return state
+    hourly = state.get("hourly", {}) or {}
+    if not hourly:
+        state["rebuild_backfilled"] = True
+        return state
+    stats = state.get("rebuild_stats", {}) or {}
+    prev_out: Dict[str, float] = {}
+    for key in sorted(hourly.keys()):
+        snapshot = hourly.get(key, {}) or {}
+        for sid, data in snapshot.items():
+            if not isinstance(data, dict):
+                continue
+            name = data.get("name") or str(sid)
+            out = data.get("outbound_bytes")
+            if out is None:
+                continue
+            try:
+                current = float(out)
+            except Exception:
+                continue
+            prev = prev_out.get(name)
+            if prev is not None and current < prev:
+                entry = stats.get(name, {}) or {}
+                entry["count"] = int(entry.get("count") or 0) + 1
+                entry["last_time"] = key
+                try:
+                    parsed = datetime.strptime(key, "%Y-%m-%d %H:%M")
+                    entry["last_time_iso"] = parsed.isoformat()
+                except Exception:
+                    entry["last_time_iso"] = None
+                entry["last_source"] = "历史回填"
+                entry["last_server_id"] = str(sid)
+                sources = entry.get("sources", {}) or {}
+                sources["历史回填"] = int(sources.get("历史回填") or 0) + 1
+                entry["sources"] = sources
+                stats[name] = entry
+            prev_out[name] = current
+    state["rebuild_stats"] = stats
+    state["rebuild_backfilled"] = True
+    return state
+
+
 def _record_rebuild_event(server_id: int, server_name: str, source: str) -> None:
     state = _load_report_state()
     stats = state.get("rebuild_stats", {}) or {}
@@ -2513,11 +2557,22 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 @app.on_event("startup")
 def _start_traffic_monitor() -> None:
+    def _backfill_wrapper() -> None:
+        try:
+            state = _load_report_state()
+            if state.get("rebuild_backfilled"):
+                return
+            state = _backfill_rebuild_stats(state)
+            _save_report_state(state)
+        except Exception as e:
+            print(f"[alert] rebuild backfill error: {e}")
+
     threading.Thread(target=_monitor_traffic_loop, daemon=True).start()
     threading.Thread(target=_daily_report_loop, daemon=True).start()
     threading.Thread(target=_telegram_bot_loop, daemon=True).start()
     threading.Thread(target=_schedule_loop, daemon=True).start()
     threading.Thread(target=_snapshot_loop, daemon=True).start()
+    threading.Thread(target=_backfill_wrapper, daemon=True).start()
     def _sync_wrapper() -> None:
         try:
             config = _load_yaml(CONFIG_PATH)

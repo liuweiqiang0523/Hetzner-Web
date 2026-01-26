@@ -191,6 +191,9 @@ A：确认 `automation/config.yaml` 里的 `bot_token`/`chat_id`，然后重启�
 Q：改了配置没生效？  
 A：Web 运行 `docker compose up -d --build`，automation 运行 `systemctl restart`。
 
+Q：重建后 DNS 还是旧 IP？  
+A：Telegram 执行 `/dnsync` 或 `/dnstest <ID>` 强制更新，然后用 `/dnscheck <ID>` 验证。如果仍是旧 IP，检查 Cloudflare 记录是否存在、Token 权限是否足够，以及新服务器是否已分配 IPv4。
+
 Q：配置文件在哪里？  
 A：Web 在 `/opt/hetzner-web/`，automation 在 `/opt/hetzner-web/automation/`。
 

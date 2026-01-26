@@ -191,6 +191,9 @@ A: Verify `bot_token` and `chat_id` in `automation/config.yaml`, then restart th
 Q: I edited configs but nothing changed.  
 A: Rebuild web with `docker compose up -d --build` and restart automation with `systemctl restart`.
 
+Q: DNS points to the old IP after a rebuild. What should I do?  
+A: Run `/dnsync` or `/dnstest <ID>` in Telegram to force an update, then verify with `/dnscheck <ID>`. If it still points to the old IP, confirm the Cloudflare record exists, token permissions are correct, and the new server has an IPv4 assigned.
+
 Q: Where are my config files stored?  
 A: Web configs live in `/opt/hetzner-web/` and automation config is in `/opt/hetzner-web/automation/`.
 

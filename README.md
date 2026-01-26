@@ -107,6 +107,11 @@ If any are missing, install them first (Ubuntu/Debian: `apt`).
 **Automation config**
 - `automation/config.yaml`: set Hetzner/Telegram/Cloudflare if needed
 
+**Optional tuning**
+- `cloudflare.update_retries`, `cloudflare.update_retry_delay`, `cloudflare.rebuild_sync_delay_seconds` for DNS retry + post-rebuild sync
+- `qbittorrent.rebuild_cooldown_seconds`, `qbittorrent.instances[].login_retries`, `qbittorrent.instances[].login_retry_delay` for login retry + cooldown
+- Telegram: `/dnsync` to force a DNS sync on demand
+
 Apply changes:
 
 ```bash

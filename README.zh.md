@@ -107,6 +107,11 @@ systemctl --version
 **Automation 配置**
 - `automation/config.yaml`：填写 Hetzner/Telegram/Cloudflare 等
 
+**可选调优**
+- `cloudflare.update_retries`, `cloudflare.update_retry_delay`, `cloudflare.rebuild_sync_delay_seconds`：DNS 更新重试与重建后补偿同步
+- `qbittorrent.rebuild_cooldown_seconds`, `qbittorrent.instances[].login_retries`, `qbittorrent.instances[].login_retry_delay`：登录重试与冷却期
+- Telegram：`/dnsync` 可手动触发 DNS 同步
+
 应用配置：
 
 ```bash

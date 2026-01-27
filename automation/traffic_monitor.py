@@ -202,7 +202,7 @@ class TrafficMonitor:
         
         return results
     
-    def handle_exceeded_server(self, result: Dict) -> bool:
+    def handle_exceeded_server(self, result: Dict, dry_run: bool = False) -> bool:
         server_id = result['server_id']
         server_name = result['server_name']
         
@@ -218,6 +218,10 @@ class TrafficMonitor:
         )
         
         action = self.exceed_action.lower()
+
+        if dry_run:
+            self.logger.warning(f"[DRY RUN] 将执行超限操作: {action} on {server_name} (ID: {server_id})")
+            return True
         
         if action == 'delete':
             self.logger.warning(f"执行删除操作: {server_name}")
@@ -287,7 +291,7 @@ class TrafficMonitor:
             self.logger.error(f"未知的超限操作: {action}")
             return False
     
-    def monitor(self) -> Dict:
+    def monitor(self, dry_run: bool = False) -> Dict:
         self.logger.info("=" * 60)
         self.logger.info("开始流量监控...")
         
@@ -309,7 +313,7 @@ class TrafficMonitor:
                     pass
             if result['exceeded']:
                 summary['exceeded_servers'].append(result)
-                if self.handle_exceeded_server(result):
+                if self.handle_exceeded_server(result, dry_run=dry_run):
                     summary['actions_taken'].append({
                         'server': result['server_name'],
                         'action': self.exceed_action,

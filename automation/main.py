@@ -84,6 +84,7 @@ def main():
     parser = argparse.ArgumentParser(description='Hetzner 服务器流量监控系统')
     parser.add_argument('--config', default='config.yaml', help='配置文件路径')
     parser.add_argument('--once', action='store_true', help='只运行一次检查')
+    parser.add_argument('--dry-run', action='store_true', help='只演练流程，不执行删除/重建')
     parser.add_argument('--list', action='store_true', help='列出所有服务器')
     parser.add_argument('--check-traffic', type=int, metavar='SERVER_ID', help='检查指定服务器流量')
     
@@ -155,7 +156,7 @@ def main():
     
     if args.once:
         logger.info("运行模式：单次检查")
-        summary = monitor.monitor()
+        summary = monitor.monitor(dry_run=args.dry_run)
         if summary['warning_servers']:
             notifier.notify_traffic_warning(summary['warning_servers'])
         if summary['actions_taken']:
@@ -169,7 +170,7 @@ def main():
     
     try:
         while True:
-            summary = monitor.monitor()
+            summary = monitor.monitor(dry_run=args.dry_run)
             if summary['warning_servers']:
                 notifier.notify_traffic_warning(summary['warning_servers'])
             if summary['actions_taken']:

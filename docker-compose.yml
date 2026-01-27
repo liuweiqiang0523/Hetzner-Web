@@ -15,4 +15,5 @@ services:
       - ./config.yaml:/app/config.yaml
       - ./report_state.json:/app/report_state.json
       - ./report_state_backups:/app/report_state_backups
+      - ./threshold_state.json:/app/threshold_state.json
       - ./web_config.json:/app/web_config.json:ro

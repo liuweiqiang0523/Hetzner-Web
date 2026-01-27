@@ -22,6 +22,7 @@ STATIC_DIR = os.path.join(APP_ROOT, "static")
 
 CONFIG_PATH = os.environ.get("HETZNER_CONFIG_PATH", "/app/config.yaml")
 WEB_CONFIG_PATH = os.environ.get("WEB_CONFIG_PATH", "/app/web_config.json")
+THRESHOLD_STATE_PATH = os.environ.get("THRESHOLD_STATE_PATH", "/app/threshold_state.json")
 REPORT_STATE_PATH = os.environ.get("REPORT_STATE_PATH", "/app/report_state.json")
 REPORT_STATE_BACKUP_DIR = os.environ.get("REPORT_STATE_BACKUP_DIR", "/app/report_state_backups")
 REPORT_STATE_BACKUP_KEEP = 3
@@ -53,6 +54,46 @@ def _load_json(path: str) -> Dict[str, Any]:
         return {}
     with open(path, "r") as f:
         return json.load(f)
+
+
+def _save_json(path: str, data: Dict[str, Any]) -> None:
+    tmp = f"{path}.tmp"
+    with open(tmp, "w") as f:
+        json.dump(data, f)
+    os.replace(tmp, path)
+
+
+def _load_threshold_state() -> Dict[str, int]:
+    raw = _load_json(THRESHOLD_STATE_PATH)
+    if not isinstance(raw, dict):
+        return {}
+    state: Dict[str, int] = {}
+    for key, value in raw.items():
+        try:
+            state[str(key)] = int(value)
+        except Exception:
+            continue
+    return state
+
+
+def _save_threshold_state(state: Dict[str, int]) -> None:
+    try:
+        _save_json(THRESHOLD_STATE_PATH, state)
+    except Exception as e:
+        print(f"[alert] threshold state save failed: {e}")
+
+
+def _persist_threshold_from_alert_state() -> None:
+    levels: Dict[str, int] = {}
+    for sid, data in ALERT_STATE.items():
+        level = data.get("last_level")
+        if level is None:
+            continue
+        try:
+            levels[str(sid)] = int(level)
+        except Exception:
+            continue
+    _save_threshold_state(levels)
 
 
 def _now_local() -> datetime:
@@ -1112,7 +1153,9 @@ def _send_telegram_message(
         if reply_markup:
             payload["reply_markup"] = reply_markup
         resp = requests.post(url, json=payload, timeout=15)
-        resp.raise_for_status()
+        if resp.status_code >= 400:
+            print(f"[alert] telegram send failed: {resp.status_code} {resp.text}")
+            return False
         return True
     except Exception as e:
         print(f"[alert] telegram send failed: {e}")
@@ -1133,7 +1176,10 @@ def _send_telegram_markdown(
         if reply_markup:
             payload["reply_markup"] = reply_markup
         resp = requests.post(url, json=payload, timeout=15)
-        resp.raise_for_status()
+        if resp.status_code >= 400:
+            print(f"[alert] telegram send failed: {resp.status_code} {resp.text}")
+            # Fallback to plain text if Markdown parse fails or chat errors are transient.
+            return _send_telegram_message(bot_token, chat_id, text, reply_markup=reply_markup)
         return True
     except Exception as e:
         print(f"[alert] telegram send failed: {e}")
@@ -1826,22 +1872,19 @@ def _monitor_traffic_loop() -> None:
                 if last_outgoing is not None and float(outgoing) < float(last_outgoing):
                     state["last_level"] = 0
                     state["auto_rebuild"] = False
+                    _persist_threshold_from_alert_state()
                 state["last_outgoing"] = float(outgoing)
 
                 reached = [level for level in levels if percent >= level]
                 if not reached:
                     continue
-                new_level = max(reached)
-                if int(new_level) <= int(state.get("last_level") or 0):
+                last_level = int(state.get("last_level") or 0)
+                levels_to_send = [level for level in levels if last_level < level <= percent]
+                if not levels_to_send:
                     continue
 
                 outbound_tb = _bytes_to_tb(float(outgoing))
                 server_name = detail.get("name") or s.get("name") or sid
-                message = (
-                    f"[Hetzner-Web] {server_name} 流量提醒: {new_level}%\n"
-                    f"出站: {outbound_tb} TB\n"
-                    f"阈值: {limit_gb} GB"
-                )
                 if enabled and bot_token and chat_id:
                     limit_tb = (Decimal(limit_bytes) / (Decimal(1024) ** 4)).quantize(
                         Decimal("0.001"), rounding=ROUND_HALF_UP
@@ -1852,17 +1895,23 @@ def _monitor_traffic_loop() -> None:
                         detail.get("ingoing_traffic"),
                         qb_map,
                     )
-                    notify_text = _format_traffic_notification(
-                        server_name,
-                        outgoing,
-                        detail.get("ingoing_traffic"),
-                        limit_tb,
-                        percent,
-                        int(new_level),
-                        qb_line,
-                    )
-                    if _send_telegram_markdown(bot_token, chat_id, notify_text):
-                        state["last_level"] = int(new_level)
+                    for level in levels_to_send:
+                        notify_text = _format_traffic_notification(
+                            server_name,
+                            outgoing,
+                            detail.get("ingoing_traffic"),
+                            limit_tb,
+                            percent,
+                            int(level),
+                            qb_line,
+                        )
+                        if _send_telegram_markdown(bot_token, chat_id, notify_text):
+                            state["last_level"] = int(level)
+                            _persist_threshold_from_alert_state()
+                            print(
+                                f"[alert] telegram notify sent: server={server_name} "
+                                f"percent={percent:.2f} level={int(level)}"
+                            )
 
                 if exceed_action in ("rebuild", "delete_rebuild") and float(outgoing) >= limit_bytes:
                     if not state.get("auto_rebuild"):
@@ -2627,6 +2676,16 @@ def _start_traffic_monitor() -> None:
     if os.environ.get("HETZNER_WEB_DISABLE_WORKERS", "").lower() in ("1", "true", "yes"):
         print("[info] background workers disabled by HETZNER_WEB_DISABLE_WORKERS")
         return
+    try:
+        persisted = _load_threshold_state()
+        for sid, level in persisted.items():
+            ALERT_STATE[str(sid)] = {
+                "last_level": int(level),
+                "last_outgoing": None,
+                "auto_rebuild": False,
+            }
+    except Exception as e:
+        print(f"[alert] threshold state load failed: {e}")
     def _backfill_wrapper() -> None:
         try:
             state = _load_report_state()
@@ -2651,6 +2710,54 @@ def _start_traffic_monitor() -> None:
         except Exception as e:
             print(f"[alert] cloudflare sync error: {e}")
     threading.Thread(target=_sync_wrapper, daemon=True).start()
+    try:
+        config = _load_yaml(CONFIG_PATH)
+        telegram_cfg = config.get("telegram", {})
+        bot_token = telegram_cfg.get("bot_token", "")
+        chat_id = telegram_cfg.get("chat_id", "")
+        if telegram_cfg.get("enabled") and bot_token and chat_id:
+            now = _now_local().strftime("%Y-%m-%d %H:%M:%S")
+            levels = _parse_alert_levels(telegram_cfg.get("notify_levels"))
+            notify_text = f"{', '.join(str(x) for x in levels)}%" if levels else "-"
+            client = HetznerClient(config["hetzner"]["api_token"])
+            servers = client.get_servers()
+            server_count = len(servers)
+            limit_gb = (config.get("traffic") or {}).get("limit_gb")
+            limit_text = f"{limit_gb} GB" if limit_gb else "未设置"
+            total_outbound_bytes = 0.0
+            top_name = "-"
+            top_percent = 0.0
+            if limit_gb:
+                limit_bytes = float(Decimal(limit_gb) * (Decimal(1024) ** 3))
+            else:
+                limit_bytes = 0.0
+            for s in servers:
+                detail = client.get_server(s["id"]) or {}
+                outgoing = detail.get("outgoing_traffic")
+                if outgoing is None:
+                    continue
+                total_outbound_bytes += float(outgoing)
+                if limit_bytes > 0:
+                    percent = (float(outgoing) / limit_bytes) * 100
+                    if percent >= top_percent:
+                        top_percent = percent
+                        top_name = detail.get("name") or s.get("name") or str(s["id"])
+            total_outbound_tb = _bytes_to_tb(total_outbound_bytes)
+            _send_telegram_markdown(
+                bot_token,
+                chat_id,
+                (
+                    "✅ 监控已启动\n"
+                    f"时间: {now}\n"
+                    f"服务器: {server_count} 台\n"
+                    f"阈值: {notify_text}\n"
+                    f"流量上限: {limit_text}\n"
+                    f"当前累计出站(总): {total_outbound_tb} TB\n"
+                    f"最高使用率: {top_name} · {top_percent:.1f}%"
+                ),
+            )
+    except Exception as e:
+        print(f"[alert] startup notify error: {e}")
 
 
 @app.get("/")

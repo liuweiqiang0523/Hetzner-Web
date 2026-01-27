@@ -9,4 +9,3 @@ automation/__pycache__/
 automation/venv/
 automation/hetzner_monitor.log
 hetzner_monitor.log
-scripts/push_threshold_notify.py

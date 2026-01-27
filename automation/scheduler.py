@@ -60,16 +60,20 @@ class TaskScheduler:
 
     def _update_config_mapping(self, old_id: int, new_id: int) -> None:
         snapshot_map = self.config.get('snapshot_map', {})
-        if str(old_id) in snapshot_map:
-            snapshot_map[str(new_id)] = snapshot_map[str(old_id)]
-            snapshot_map.pop(str(old_id), None)
+        old_snapshot_key = old_id if old_id in snapshot_map else str(old_id)
+        if old_snapshot_key in snapshot_map:
+            new_snapshot_key = new_id if isinstance(old_snapshot_key, int) else str(new_id)
+            snapshot_map[new_snapshot_key] = snapshot_map[old_snapshot_key]
+            snapshot_map.pop(old_snapshot_key, None)
             self.config['snapshot_map'] = snapshot_map
 
         cloudflare = self.config.get('cloudflare', {})
         record_map = cloudflare.get('record_map', {})
-        if str(old_id) in record_map:
-            record_map[str(new_id)] = record_map[str(old_id)]
-            record_map.pop(str(old_id), None)
+        old_record_key = str(old_id) if str(old_id) in record_map else old_id
+        if old_record_key in record_map:
+            new_record_key = str(new_id) if isinstance(old_record_key, str) else new_id
+            record_map[new_record_key] = record_map[old_record_key]
+            record_map.pop(old_record_key, None)
             cloudflare['record_map'] = record_map
             self.config['cloudflare'] = cloudflare
 

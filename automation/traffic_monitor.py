@@ -236,6 +236,7 @@ class TrafficMonitor:
             ssh_keys = template.get('ssh_keys', [])
             name_prefix = template.get('name_prefix')
             use_original_name = template.get('use_original_name', True)
+            fallbacks = template.get('fallbacks', [])
             snapshot_map = self.config.get('snapshot_map', {})
             override_snapshot_id = snapshot_map.get(server_id)
 
@@ -251,6 +252,7 @@ class TrafficMonitor:
                     ssh_keys=ssh_keys,
                     name_prefix=name_prefix,
                     use_original_name=use_original_name,
+                    fallbacks=fallbacks,
                 )
             else:
                 result = self.hetzner.delete_and_recreate_from_snapshot(
@@ -260,6 +262,7 @@ class TrafficMonitor:
                     ssh_keys=ssh_keys,
                     name_prefix=name_prefix,
                     use_original_name=use_original_name,
+                    fallbacks=fallbacks,
                 )
 
             if isinstance(result, dict):
@@ -299,13 +302,13 @@ class TrafficMonitor:
         }
         
         for result in results:
+            if self.telegram_bot and result.get('new_threshold') is not None:
+                try:
+                    self.telegram_bot.send_traffic_notification(result)
+                except Exception:
+                    pass
             if result['exceeded']:
                 summary['exceeded_servers'].append(result)
-                if self.telegram_bot and result.get('new_threshold') is not None:
-                    try:
-                        self.telegram_bot.send_traffic_notification(result)
-                    except Exception:
-                        pass
                 if self.handle_exceeded_server(result):
                     summary['actions_taken'].append({
                         'server': result['server_name'],
@@ -319,11 +322,6 @@ class TrafficMonitor:
                         pass
             elif result['warnings']:
                 summary['warning_servers'].append(result)
-                if self.telegram_bot and result.get('new_threshold') is not None:
-                    try:
-                        self.telegram_bot.send_traffic_notification(result)
-                    except Exception:
-                        pass
             else:
                 summary['normal_servers'].append(result)
         

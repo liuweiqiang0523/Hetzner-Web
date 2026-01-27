@@ -74,6 +74,9 @@ server_template:
   ssh_keys: []
   name_prefix: "auto-"
   use_original_name: true
+  fallbacks:
+    - server_type: "cpx32"
+      snapshot_id: 123456789
 
 snapshot_map:
   SERVER_ID_1: 123456789

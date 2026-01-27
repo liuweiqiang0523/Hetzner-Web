@@ -531,9 +531,10 @@ class TelegramBot:
             "/today ID - 📅 今日流量(无ID显示全部)\n"
             "/report - 🕒 手动流量汇报\n"
             "/reportstatus - 📋 上次汇报时间\n\n"
-            "/reportreset - ♻️ 重置汇报区间\n\n"
-            "/dnstest [ID] - 🔧 测试DNS更新\n\n"
-            "/dnscheck ID - ✅ DNS解析检查\n\n"
+            "/reportreset - ♻️ 重置汇报区间\n"
+            "/dnstest ID - 🔧 测试DNS更新\n"
+            "/dnscheck ID - ✅ DNS解析检查\n"
+            "/dnsync - 🔁 同步DNS记录\n\n"
             "*🔧 控制类:*\n"
             "/startserver <ID> - ▶️ 启动服务器\n"
             "/stopserver <ID> - ⏸️ 停止服务器\n"
@@ -547,7 +548,9 @@ class TelegramBot:
             "/scheduleon - ✅ 开启定时删机\n"
             "/scheduleoff - ⏸️ 关闭定时删机\n"
             "/schedulestatus - 📋 查看定时状态\n"
-            "/scheduleset delete=23:50,01:00 create=08:00,09:00 - 设置定时\n\n"
+            "/scheduleset delete=23:50,01:00 create=08:00,09:00 - 设置定时\n"
+            "/createfromsnapshots - 🧩 依据快照批量创建\n\n"
+            "/createfromsnapshot <ID> - 🧩 依据快照创建单台\n\n"
             "💡 服务器ID从 /list 获取"
         )
         await u.message.reply_text(text, parse_mode='Markdown')
@@ -751,6 +754,10 @@ class TelegramBot:
                     await u.message.reply_text(f"❌ DNS更新失败: {record_name} ({res.get('error')})")
         except Exception as e:
             await u.message.reply_text(f"❌ 错误: {e}")
+
+    async def cmd_dnsync(self, u: Update, c: ContextTypes.DEFAULT_TYPE):
+        # 与 dnstest 行为一致：按当前 IP 同步 DNS 记录
+        await self.cmd_dnstest(u, c)
 
     def _resolve_a(self, hostname: str, timeout: int = 5) -> str:
         prev_timeout = socket.getdefaulttimeout()
@@ -956,6 +963,74 @@ class TelegramBot:
         except Exception as e:
             await u.message.reply_text(f"❌ {e}")
 
+    async def cmd_createfromsnapshots(self, u: Update, c: ContextTypes.DEFAULT_TYPE):
+        try:
+            snapshot_map = self.config.get("snapshot_map", {}) or {}
+            if not snapshot_map:
+                await u.message.reply_text("⚠️ snapshot_map 为空，无法创建", parse_mode='Markdown')
+                return
+            self.scheduler.create_from_snapshot_map()
+            await u.message.reply_text("✅ 已触发按快照批量创建", parse_mode='Markdown')
+        except Exception as e:
+            await u.message.reply_text(f"❌ {e}")
+
+    async def cmd_createfromsnapshot(self, u: Update, c: ContextTypes.DEFAULT_TYPE):
+        if not c.args:
+            await u.message.reply_text("📝 用法: /createfromsnapshot <ID>", parse_mode='Markdown')
+            return
+
+        try:
+            sid = int(c.args[0])
+            snapshot_map = self.config.get("snapshot_map", {}) or {}
+            snapshot_id = snapshot_map.get(sid)
+            if snapshot_id is None:
+                snapshot_id = snapshot_map.get(str(sid))
+            if snapshot_id is None:
+                await u.message.reply_text("❌ 未找到该服务器的快照映射", parse_mode='Markdown')
+                return
+
+            template = self.config.get("server_template", {}) or {}
+            server_type = template.get("server_type")
+            location = template.get("location")
+            ssh_keys = template.get("ssh_keys", [])
+            name_prefix = template.get("name_prefix")
+            if not server_type or not location:
+                await u.message.reply_text("❌ server_template 未配置 server_type/location", parse_mode='Markdown')
+                return
+
+            cloudflare = self.config.get("cloudflare", {}) or {}
+            record_map = cloudflare.get("record_map", {}) or {}
+            name = None
+            record_name = record_map.get(str(sid)) if record_map else None
+            if record_name:
+                name = record_name.split(".")[0]
+            if not name:
+                name = f"{name_prefix or 'auto-'}{sid}"
+
+            created = self.hetzner.create_server_from_snapshot(
+                name=name,
+                server_type=server_type,
+                location=location,
+                snapshot_id=int(snapshot_id),
+                ssh_keys=ssh_keys,
+            )
+            if not created:
+                await u.message.reply_text("❌ 创建服务器失败", parse_mode='Markdown')
+                return
+
+            new_id = created.get("id")
+            new_ip = (created.get("public_net") or {}).get("ipv4", {}).get("ip")
+            if isinstance(new_id, int):
+                self.scheduler._update_config_mapping(sid, new_id)
+            if new_ip:
+                self.scheduler._update_dns(sid, new_ip)
+
+            await u.message.reply_text(
+                f"✅ 已创建服务器: `{new_id}` {created.get('name')}", parse_mode='Markdown'
+            )
+        except Exception as e:
+            await u.message.reply_text(f"❌ {e}")
+
     async def cmd_scheduleon(self, u: Update, c: ContextTypes.DEFAULT_TYPE):
         self.scheduler.enable()
         self.scheduler.load_tasks()
@@ -1030,6 +1105,7 @@ class TelegramBot:
             self.app.add_handler(CommandHandler("reportstatus", self.cmd_reportstatus))
             self.app.add_handler(CommandHandler("reportreset", self.cmd_reportreset))
             self.app.add_handler(CommandHandler("dnstest", self.cmd_dnstest))
+            self.app.add_handler(CommandHandler("dnsync", self.cmd_dnsync))
             self.app.add_handler(CommandHandler("dnscheck", self.cmd_dnscheck))
             self.app.add_handler(CommandHandler("startserver", self.cmd_startserver))
             self.app.add_handler(CommandHandler("stopserver", self.cmd_stopserver))
@@ -1038,6 +1114,8 @@ class TelegramBot:
             self.app.add_handler(CommandHandler("rebuild", self.cmd_rebuild))
             self.app.add_handler(CommandHandler("snapshots", self.cmd_snapshots))
             self.app.add_handler(CommandHandler("createsnapshot", self.cmd_createsnapshot))
+            self.app.add_handler(CommandHandler("createfromsnapshots", self.cmd_createfromsnapshots))
+            self.app.add_handler(CommandHandler("createfromsnapshot", self.cmd_createfromsnapshot))
             self.app.add_handler(CommandHandler("scheduleon", self.cmd_scheduleon))
             self.app.add_handler(CommandHandler("scheduleoff", self.cmd_scheduleoff))
             self.app.add_handler(CommandHandler("schedulestatus", self.cmd_schedulestatus))

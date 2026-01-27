@@ -279,6 +279,7 @@ class HetznerManager:
         ssh_keys: Optional[List[int]] = None,
         name_prefix: Optional[str] = None,
         use_original_name: bool = True,
+        fallbacks: Optional[List[Dict]] = None,
     ) -> Dict:
         try:
             server = self.get_server(server_id)
@@ -331,6 +332,32 @@ class HetznerManager:
                     "snapshot_id": snapshot_id,
                 }
 
+            fallback_list = fallbacks or []
+            for fallback in fallback_list:
+                fb_type = fallback.get("server_type")
+                fb_snapshot_id = fallback.get("snapshot_id")
+                if not (fb_type and fb_snapshot_id):
+                    continue
+                self.logger.warning(
+                    f"主型号创建失败，尝试备用型号: {fb_type} 快照 {fb_snapshot_id}"
+                )
+                created = self.create_server_from_snapshot(
+                    name=name,
+                    server_type=fb_type,
+                    location=location,
+                    snapshot_id=int(fb_snapshot_id),
+                    ssh_keys=ssh_keys,
+                )
+                if created:
+                    self.logger.warning(f"服务器已创建: {created.get('id')} {created.get('name')}")
+                    return {
+                        "success": True,
+                        "new_server_id": created.get("id"),
+                        "new_ip": (created.get("public_net") or {}).get("ipv4", {}).get("ip"),
+                        "snapshot_id": fb_snapshot_id,
+                        "server_type": fb_type,
+                    }
+
             self.logger.error("删除后创建服务器失败")
             return {"success": False, "error": "create_failed"}
         except Exception as e:
@@ -346,6 +373,7 @@ class HetznerManager:
         ssh_keys: Optional[List[int]] = None,
         name_prefix: Optional[str] = None,
         use_original_name: bool = True,
+        fallbacks: Optional[List[Dict]] = None,
     ) -> Dict:
         try:
             server = self.get_server(server_id)
@@ -390,6 +418,32 @@ class HetznerManager:
                     "new_ip": (created.get("public_net") or {}).get("ipv4", {}).get("ip"),
                     "snapshot_id": snapshot_id,
                 }
+
+            fallback_list = fallbacks or []
+            for fallback in fallback_list:
+                fb_type = fallback.get("server_type")
+                fb_snapshot_id = fallback.get("snapshot_id")
+                if not (fb_type and fb_snapshot_id):
+                    continue
+                self.logger.warning(
+                    f"主型号创建失败，尝试备用型号: {fb_type} 快照 {fb_snapshot_id}"
+                )
+                created = self.create_server_from_snapshot(
+                    name=name,
+                    server_type=fb_type,
+                    location=location,
+                    snapshot_id=int(fb_snapshot_id),
+                    ssh_keys=ssh_keys,
+                )
+                if created:
+                    self.logger.warning(f"服务器已创建: {created.get('id')} {created.get('name')}")
+                    return {
+                        "success": True,
+                        "new_server_id": created.get("id"),
+                        "new_ip": (created.get("public_net") or {}).get("ipv4", {}).get("ip"),
+                        "snapshot_id": fb_snapshot_id,
+                        "server_type": fb_type,
+                    }
 
             self.logger.error("删除后创建服务器失败")
             return {"success": False, "error": "create_failed"}

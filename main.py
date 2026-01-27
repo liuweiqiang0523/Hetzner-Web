@@ -35,6 +35,7 @@ QB_REBUILD_COOLDOWN_SECONDS = 300
 CF_RETRY_ATTEMPTS = 3
 CF_RETRY_DELAY_SECONDS = 5
 CF_REBUILD_SYNC_DELAY_SECONDS = 90
+CF_VERIFY_DELAY_SECONDS = 120
 
 
 def _load_yaml(path: str) -> Dict[str, Any]:
@@ -1533,6 +1534,13 @@ def _perform_rebuild(
                 chat_id,
                 "\n".join(lines),
             )
+            if dns_result and dns_result.get("success") and resolved:
+                _schedule_dns_verify_notify(
+                    resolved["record"],
+                    result.get("new_ip", ""),
+                    bot_token,
+                    chat_id,
+                )
         result["dns"] = dns_result
         return result
     finally:
@@ -1560,6 +1568,31 @@ def _schedule_cf_rebuild_sync(
             attempts=attempts,
             delay_seconds=delay_seconds,
         )
+
+    thread = threading.Thread(target=_worker, daemon=True)
+    thread.start()
+
+
+def _schedule_dns_verify_notify(
+    record: str,
+    expected_ip: str,
+    bot_token: str,
+    chat_id: str,
+    delay_seconds: int = CF_VERIFY_DELAY_SECONDS,
+) -> None:
+    if not (record and expected_ip and bot_token and chat_id):
+        return
+
+    def _worker() -> None:
+        time.sleep(max(5, delay_seconds))
+        verify = _verify_dns_record(record, expected_ip)
+        if verify.get("ok"):
+            text = f"✅ DNS 解析一致: `{verify.get('resolved')}`"
+        elif verify.get("resolved"):
+            text = f"⚠️ DNS 解析不一致: `{verify.get('resolved')}`"
+        else:
+            text = f"⚠️ DNS 校验失败: {verify.get('error') or 'unknown error'}"
+        _send_telegram_markdown(bot_token, chat_id, text)
 
     thread = threading.Thread(target=_worker, daemon=True)
     thread.start()

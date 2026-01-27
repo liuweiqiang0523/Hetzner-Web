@@ -1911,7 +1911,6 @@
             <div class="subtitle">{{ langPack.qbSubtitle }}</div>
             <div class="toolbar">
               <div class="toolbar-left">
-                <div class="status">{{ langPack.tableTrend }}</div>
                 <select class="table-filter" v-model="qbSort">
                   <option value="diff_desc">{{ langPack.qbSortDiffDesc }}</option>
                   <option value="diff_asc">{{ langPack.qbSortDiffAsc }}</option>
@@ -1955,12 +1954,6 @@
 
           <div class="card">
             <h3 class="title-with-icon">{{ langPack.trafficTitle }}</h3>
-            <div class="toolbar">
-              <div class="status">{{ langPack.hourlyDateLabel }}</div>
-              <input class="date-input" type="date" v-model="hourlyDate" @change="fetchHourly" />
-              <button class="btn" @click="clearHourlyDate">{{ langPack.recent24h }}</button>
-              <div class="muted">{{ hourlyDateDisplay }}</div>
-            </div>
             <div class="detail-grid">
               <div class="detail-card">
                 <div class="detail-title title-with-icon">{{ langPack.trafficBarsTitle }}</div>
@@ -1996,57 +1989,8 @@
                   </div>
                 </div>
               </div>
-              <div class="detail-card">
-                <div class="detail-title title-with-icon">{{ langPack.dailyTitle }}</div>
-                <div v-if="dailyServerOptions.length === 0" class="muted">{{ langPack.noData }}</div>
-                <div v-else>
-                  <div class="selector">
-                    <span
-                      v-for="srv in dailyServerOptions"
-                      :key="srv.id"
-                      class="chip"
-                      :class="{ active: dailySelectedIds.includes(srv.id) }"
-                      @click="toggleDailyServer(srv.id)"
-                    >
-                      <span class="chip-dot" :style="{ background: srv.color }"></span>{{ srv.name }}
-                    </span>
-                  </div>
-                  <div v-if="dailyMatrix.rows.length === 0" class="muted">{{ langPack.selectAtLeastOne }}</div>
-                  <div v-else class="matrix-wrap scroll-box">
-                    <table class="table compact-table daily-matrix">
-                      <thead>
-                        <tr>
-                          <th class="col-date">{{ langPack.tableDate }}</th>
-                          <th v-for="srv in dailyMatrix.servers" :key="srv.id + '-name'" colspan="2" class="group">
-                            {{ srv.name }}
-                          </th>
-                        </tr>
-                        <tr>
-                          <th class="col-date"></th>
-                          <template v-for="srv in dailyMatrix.servers" :key="srv.id + '-cols'">
-                            <th class="sub">{{ langPack.outbound }}</th>
-                            <th class="sub divider">{{ langPack.inbound }}</th>
-                          </template>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr v-for="row in dailyMatrix.rows" :key="row.date">
-                          <td class="mono col-date">{{ row.date }}</td>
-                          <td v-for="(val, idx) in row.outValues" :key="row.date + '-out-' + idx" class="sub">
-                            {{ val }} TB
-                          </td>
-                          <td v-for="(val, idx) in row.inValues" :key="row.date + '-in-' + idx" class="sub divider">
-                            {{ val }} TB
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
-
 
         </section>
 
@@ -2273,6 +2217,7 @@
                   "Tag-based grouping and custom caps.",
                 ],
                 serversTitle: "🖥️ Hetzner · Servers",
+                serversNote: "",
                 serverSearchPlaceholder: "Search name / ID / IP",
                 sortOutboundDesc: "Outbound high to low",
                 sortOutboundAsc: "Outbound low to high",
@@ -2284,11 +2229,11 @@
                 tableIp: "IP",
                 tableType: "Type",
                 tableLocation: "Location",
-                tableOutbound: "Outbound (TB)",
-                tableInbound: "Inbound (TB)",
+                tableOutbound: "Outbound (Monthly TB)",
+                tableInbound: "Inbound (Monthly TB)",
                 tableLimit: "Remaining / Limit (TB)",
                 tableEta: "Cap ETA",
-                tableTrend: "Trend",
+                tableTrend: "",
                 tableActions: "Actions",
                 rebuild: "Rebuild",
                 trafficTitle: "📡 Hetzner · Outbound / Inbound",
@@ -2387,6 +2332,7 @@
                 "按标签分组与自定义流量上限。",
               ],
               serversTitle: "🖥️ Hetzner · 机器",
+              serversNote: "",
               serverSearchPlaceholder: "搜索名称 / ID / IP",
               sortOutboundDesc: "出站高到低",
               sortOutboundAsc: "出站低到高",
@@ -2398,11 +2344,11 @@
               tableIp: "IP",
               tableType: "规格",
               tableLocation: "机房",
-              tableOutbound: "出站（TB）",
-              tableInbound: "入站（TB）",
+              tableOutbound: "出站（月累计TB）",
+              tableInbound: "入站（月累计TB）",
               tableLimit: "剩余/阈值 (TB)",
               tableEta: "触顶 ETA",
-              tableTrend: "趋势",
+              tableTrend: "",
               tableActions: "操作",
               rebuild: "重建",
               trafficTitle: "📡 Hetzner · 数据",
@@ -2888,9 +2834,16 @@
             }
             if (this.demoMode) {
               this.setQbFromPayload(data.qbittorrent || {});
+              this.applyQbToServers();
             } else {
-              await this.refreshQb();
+              this.refreshQb();
             }
+            this.applyQbToServers();
+            this.fetchHourly();
+            this.fetchDaily();
+          },
+          applyQbToServers() {
+            if (!this.servers || this.servers.length === 0) return;
             const qbMap = new Map(
               (this.qbInstances || []).map((inst) => [String(inst.name || ""), inst])
             );
@@ -2929,20 +2882,21 @@
                 qb_status: qbStatus,
               };
             });
-            await this.fetchHourly();
-            await this.fetchDaily();
           },
           async refreshQb() {
             try {
               const res = await fetch("/api/qb", { headers: this.authHeader() });
               if (!res.ok) {
                 this.setQbFromPayload({ enabled: false, instances: [] });
+                this.applyQbToServers();
                 return;
               }
               const qb = await res.json();
               this.setQbFromPayload(qb || {});
+              this.applyQbToServers();
             } catch (e) {
               this.setQbFromPayload({ enabled: false, instances: [] });
+              this.applyQbToServers();
             }
           },
           async fetchHourly() {

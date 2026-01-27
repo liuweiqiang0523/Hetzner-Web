@@ -63,18 +63,22 @@ class TrafficMonitor:
             return
 
         changed = False
-        snapshot_map = data.get('snapshot_map', {})
-        if str(old_id) in snapshot_map:
-            snapshot_map[str(new_id)] = snapshot_map[str(old_id)]
-            snapshot_map.pop(str(old_id), None)
+        snapshot_map = data.get('snapshot_map', {}) or {}
+        old_snapshot_key = old_id if old_id in snapshot_map else str(old_id)
+        if old_snapshot_key in snapshot_map:
+            new_snapshot_key = new_id if isinstance(old_snapshot_key, int) else str(new_id)
+            snapshot_map[new_snapshot_key] = snapshot_map[old_snapshot_key]
+            snapshot_map.pop(old_snapshot_key, None)
             data['snapshot_map'] = snapshot_map
             changed = True
 
-        cloudflare = data.get('cloudflare', {})
-        record_map = cloudflare.get('record_map', {})
-        if str(old_id) in record_map:
-            record_map[str(new_id)] = record_map[str(old_id)]
-            record_map.pop(str(old_id), None)
+        cloudflare = data.get('cloudflare', {}) or {}
+        record_map = cloudflare.get('record_map', {}) or {}
+        old_record_key = str(old_id) if str(old_id) in record_map else old_id
+        if old_record_key in record_map:
+            new_record_key = str(new_id) if isinstance(old_record_key, str) else new_id
+            record_map[new_record_key] = record_map[old_record_key]
+            record_map.pop(old_record_key, None)
             cloudflare['record_map'] = record_map
             data['cloudflare'] = cloudflare
             changed = True
@@ -90,14 +94,21 @@ class TrafficMonitor:
         except Exception as e:
             self.logger.error(f"更新配置映射失败: {e}")
 
-    def _update_dns_after_rebuild(self, old_id: int, new_ip: Optional[str]) -> None:
+    def _update_dns_after_rebuild(
+        self,
+        old_id: int,
+        new_ip: Optional[str],
+        new_id: Optional[int] = None,
+    ) -> None:
         if not new_ip:
             return
         cf_cfg = self.config.get('cloudflare', {})
         api_token = cf_cfg.get('api_token')
         zone_id = cf_cfg.get('zone_id')
-        record_map = cf_cfg.get('record_map', {})
+        record_map = cf_cfg.get('record_map', {}) or {}
         record_name = record_map.get(str(old_id))
+        if not record_name and new_id is not None:
+            record_name = record_map.get(str(new_id))
         if not (api_token and zone_id and record_name):
             return
         res = self.hetzner.update_cloudflare_a_record(api_token, zone_id, record_name, new_ip)
@@ -117,10 +128,10 @@ class TrafficMonitor:
     def handle_rebuild_success(self, old_id: int, result: Dict) -> None:
         new_id = result.get('new_server_id')
         new_ip = result.get('new_ip')
+        self._update_dns_after_rebuild(old_id, new_ip, new_id if isinstance(new_id, int) else None)
         if isinstance(new_id, int):
             self._update_config_mapping(old_id, new_id)
         self._update_threshold_on_rebuild(old_id, new_id if isinstance(new_id, int) else None)
-        self._update_dns_after_rebuild(old_id, new_ip)
     
     def is_whitelisted(self, server: Dict) -> bool:
         server_id = server['id']

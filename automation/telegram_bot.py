@@ -125,24 +125,24 @@ class TelegramBot:
         last_error = None
         login = None
         for attempt in range(login_retries):
-        try:
-            login = session.post(
-                f"{base_url}/api/v2/auth/login",
-                data={"username": username, "password": password},
-                timeout=timeout,
-                verify=verify_ssl,
-            )
-            if login.status_code == 200 and login.text.strip().lower().startswith("ok"):
-                break
-            body = login.text.strip()
-            if body:
-                last_error = f"status={login.status_code} body={body}"
-            else:
-                last_error = f"status={login.status_code}"
-        except Exception as exc:
-            last_error = exc
-            if attempt + 1 < login_retries:
-                time.sleep(login_retry_delay)
+            try:
+                login = session.post(
+                    f"{base_url}/api/v2/auth/login",
+                    data={"username": username, "password": password},
+                    timeout=timeout,
+                    verify=verify_ssl,
+                )
+                if login.status_code == 200 and login.text.strip().lower().startswith("ok"):
+                    break
+                body = login.text.strip()
+                if body:
+                    last_error = f"status={login.status_code} body={body}"
+                else:
+                    last_error = f"status={login.status_code}"
+            except Exception as exc:
+                last_error = exc
+                if attempt + 1 < login_retries:
+                    time.sleep(login_retry_delay)
         if not login or login.status_code != 200 or "Ok." not in login.text:
             return {
                 "name": name,

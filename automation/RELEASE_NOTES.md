@@ -11,3 +11,7 @@ First stable release.
 - Cloudflare DNS updates
 - Telegram notifications
 - Systemd service integration
+
+## Unreleased
+
+- Fix: ensure DNS auto-sync runs after delete/rebuild by preserving mapping before ID update.

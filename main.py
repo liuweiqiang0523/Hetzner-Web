@@ -1517,16 +1517,25 @@ def _perform_rebuild(
         if QB_REBUILD_COOLDOWN_SECONDS > 0:
             QB_COOLDOWN_UNTIL[server_name] = time.time() + QB_REBUILD_COOLDOWN_SECONDS
 
+        # Capture DNS mapping before config is updated, so auto DNS sync won't be skipped.
+        cf_cfg = config.get("cloudflare", {}) or {}
+        record_map = cf_cfg.get("record_map", {}) or {}
+        record_cfg = record_map.get(str(server_id)) or record_map.get(server_name)
+
         new_id = result.get("new_server_id")
         if new_id:
             _update_config_mapping(config, str(server_id), str(new_id))
             _save_yaml(CONFIG_PATH, config)
+
+        if not record_cfg and new_id:
+            # If mapping was moved to the new ID, re-read it after config update.
+            cf_cfg = config.get("cloudflare", {}) or {}
+            record_map = cf_cfg.get("record_map", {}) or {}
+            record_cfg = record_map.get(str(new_id)) or record_map.get(server_name)
+
         record_id = int(new_id) if new_id else server_id
         _record_rebuild_event(record_id, server_name, source)
 
-        cf_cfg = config.get("cloudflare", {})
-        record_map = cf_cfg.get("record_map", {}) or {}
-        record_cfg = record_map.get(str(server_id)) or record_map.get(server_name)
         resolved = _resolve_cf_record(record_cfg, cf_cfg.get("zone_id", ""), cf_cfg.get("api_token", ""))
         attempts = _parse_int_or_default(cf_cfg.get("update_retries"), CF_RETRY_ATTEMPTS)
         delay_seconds = _parse_float_or_default(cf_cfg.get("update_retry_delay"), CF_RETRY_DELAY_SECONDS)

@@ -8,3 +8,7 @@ Initial unified release of the Web dashboard and Automation monitor.
 
 - Web dashboard with traffic visibility and rebuild actions
 - Automation monitoring with scheduled tasks and notifications
+
+## Unreleased
+
+- Fix: ensure DNS auto-sync runs after delete/rebuild by preserving mapping before ID update.
